@@ -4,6 +4,8 @@ A runnable internship demonstration application inspired by *general ERP invento
 
 ## What works in this version
 
+- **🤖 Google Gemini AI Copilot**: Live inventory assistant bubble on every page answering stock questions, calculating valuation, and alerting on shortages in natural language
+- **📋 1-Click Executive AI Audit**: Automated management briefing on `/reports/` evaluating stock velocity, capital concentration, and risk
 - Responsive purple-and-white admin dashboard with navigation sidebar, KPI cards and notification indicator
 - **Real database metrics**: total products, in-stock / low-stock / out-of-stock counts, inventory value, total units, open requisitions
 - **Chart.js charts**: 7-day inbound/outbound stock movements and product status doughnut
@@ -16,6 +18,7 @@ A runnable internship demonstration application inspired by *general ERP invento
 - Create purchase orders from approved requisitions; receive a full order and automatically update stock
 - Movement history, downloadable CSV reports, user profile settings, Django admin
 - Automated test cases for stock and purchase workflow (run them on your machine)
+- **Production-ready deployment**: Configured for Render.com with Gunicorn, WhiteNoise asset compression, and PostgreSQL support
 
 ## Requirements
 
