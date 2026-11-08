@@ -2,7 +2,7 @@ services:
   - type: web
     name: smartstock-erp
     runtime: python
-    buildCommand: "./build.sh"
+    buildCommand: "bash build.sh"
     startCommand: "gunicorn smartstock.wsgi:application"
     plan: free
     envVars:
