@@ -1,0 +1,24 @@
+{
+  "name": "smartstock-erp",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@google/genai": "^3.0.0",
+    "@netlify/database": "^2.0.3",
+    "@netlify/functions": "^6.1.1",
+    "@netlify/identity": "^2.0.1",
+    "chart.js": "^4.6.1",
+    "drizzle-orm": "^1.0.0-beta.22"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^1.0.0-beta.22",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6"
+  }
+}
