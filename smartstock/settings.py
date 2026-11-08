@@ -21,14 +21,15 @@ SECRET_KEY = os.environ.get(
 )
 DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 
-# Allowed hosts: handles localhost, local IP, and wildcard Render subdomains
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS", "127.0.0.1,localhost,.onrender.com"
-).split(",")
+# Allowed hosts: allows local dev, wildcard tunnels, and Render
+ALLOWED_HOSTS = ["*"]
 
-# CSRF trusted origins for secure HTTPS form submissions in production
+# CSRF trusted origins for secure HTTPS form submissions & tunnels
 CSRF_TRUSTED_ORIGINS = [
     "https://*.onrender.com",
+    "https://*.lhr.life",
+    "https://*.pinggy.link",
+    "https://*.ngrok-free.app",
     "http://127.0.0.1",
     "http://localhost",
 ]
