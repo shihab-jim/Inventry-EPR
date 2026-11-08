@@ -1,5 +1,0 @@
-{% extends 'base.html' %}
-{% block title %}Sign In | SmartStock ERP{% endblock %}
-{% block auth_content %}
-<section class="login-card"><div class="login-brand"><span><i class="bi bi-boxes"></i></span> SmartStock ERP</div><h1>Welcome back</h1><p class="mb-4">Sign in to manage your inventory and procurement workflows.</p>{% if form.errors %}<div class="alert alert-danger small">Invalid username or password. Please try again.</div>{% endif %}<form method="post">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}"><div class="mb-3"><label class="form-label" for="id_username">Username</label><input class="form-control" type="text" name="username" id="id_username" required autofocus autocomplete="username"></div><div class="mb-4"><label class="form-label" for="id_password">Password</label><input class="form-control" type="password" name="password" id="id_password" required autocomplete="current-password"></div><button class="btn btn-primary w-100" type="submit"><i class="bi bi-box-arrow-in-right"></i> Sign In</button></form><p class="text-center mb-0 mt-4">Educational ERP prototype • Local demonstration</p></section>
-{% endblock %}
