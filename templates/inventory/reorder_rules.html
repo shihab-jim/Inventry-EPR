@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}Reorder Rules | SmartStock ERP{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">AUTOMATION</div><h1>Automated Reorder Rules</h1><p>When on-hand quantity ≤ reorder point, create a draft requisition up to the target level.</p></div></div>
+<div class="data-card"><div class="table-responsive"><table class="table stock-table table-hover"><thead><tr><th>Product</th><th>SKU</th><th>On Hand</th><th>Reorder Point</th><th>Target Stock</th><th>Suggested Qty</th><th>Status</th><th>Action</th></tr></thead><tbody>{% for p in products %}<tr><td class="fw-bold">{{ p.name }}</td><td>{{ p.sku }}</td><td>{{ p.current_stock }}</td><td>{{ p.reorder_level }}</td><td>{{ p.target_stock }}</td><td>{% if p.needs_reorder %}<strong>{{ p.suggested_reorder_qty }} units</strong>{% else %}—{% endif %}</td><td>{% include 'inventory/partials/stock_status.html' with product=p %}</td><td>{% if user.is_staff %}<a class="action-btn" href="{% url 'inventory:reorder_rule_edit' p.pk %}">Edit Rule</a>{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="8" class="empty-panel">No active products yet.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

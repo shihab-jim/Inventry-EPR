@@ -1,0 +1,232 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}SmartStock ERP{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  <!-- Local style fallback: preserves dashboard layout even when static CSS is blocked or missing. -->
+  <style>
+:root {--ink:#18203b;--muted:#7d859a;--purple:#6550ea;--purple-dark:#513ad1;--border:#e9eaf4;--surface:#fff;--body:#f7f8fd;}
+* {box-sizing:border-box}
+body {margin:0;background:var(--body);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px;line-height:1.55}
+a {text-decoration:none;color:var(--purple)} a:hover {color:var(--purple-dark)}
+h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
+.erp-shell {display:flex;min-height:100vh;align-items:stretch}
+.side-panel {width:252px;flex:0 0 252px;background:#fcfcff;border-right:1px solid #eaeaf5;display:flex;flex-direction:column;min-height:100vh;padding:23px 17px 16px;position:sticky;top:0;height:100vh;z-index:30;overflow-y:auto;scrollbar-width:thin}
+.brand {display:flex;gap:11px;align-items:center;color:var(--ink);padding:1px 10px 23px}
+.brand:hover {color:var(--ink)}
+.brand-logo {height:40px;width:40px;background:linear-gradient(135deg,#8c74ff,#5439d7);color:#fff;border-radius:12px;display:grid;place-items:center;font-size:22px;box-shadow:0 5px 13px #6850e735}
+.brand strong {display:block;font-size:16px;font-weight:800;letter-spacing:-.06em;line-height:1.3}
+.brand small {display:block;font-size:9px;color:#7262c5;white-space:nowrap}
+.nav-section-label {padding:12px 15px 10px;letter-spacing:.12em;font-size:10px;font-weight:800;color:#a6a6b8}
+.nav-section-label.second-label {margin-top:11px}
+.menu-links {display:flex;flex-direction:column;gap:5px}
+.menu-item {display:flex;align-items:center;gap:13px;border-radius:11px;padding:12px 14px;color:#5d6481;font-weight:600;font-size:12.5px;transition:all .2s}
+.menu-item:hover {background:#f1effe;color:var(--purple)}
+.menu-item.active {background:linear-gradient(120deg,#775ff0,#5e43e3);color:white;box-shadow:0 6px 14px #6d50f52c}
+.menu-item i {font-size:16px;width:18px;text-align:center}
+.sidebar-spacer {min-height:24px;flex:1}
+.reorder-promo {background:linear-gradient(150deg,#9884fa,#7255e7 52%,#5533c7);border-radius:17px;padding:19px 16px 15px;color:#fff;box-shadow:0 9px 26px #6945d532;margin-bottom:21px;overflow:hidden;position:relative}
+.promo-icon {height:72px;position:relative;margin-bottom:10px}
+.promo-icon i:first-child {position:absolute;left:18px;font-size:53px;color:#fff4df;filter:drop-shadow(0 6px 7px #36229a66)}
+.promo-icon i:last-child {position:absolute;left:80px;top:22px;font-size:31px;color:#fff;filter:drop-shadow(0 3px 5px #36229a66)}
+.reorder-promo h3 {font-size:14px;letter-spacing:-.035em;margin-bottom:4px}
+.reorder-promo p {font-size:11px;color:#eee8ff;margin-bottom:13px}
+.reorder-promo .btn {font-weight:700;font-size:10px;border-radius:10px;padding:9px 5px;color:#6047db;white-space:normal}
+.side-profile {display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #eeeeF6;border-radius:13px;padding:9px 10px;box-shadow:0 5px 16px #32305d09}
+.profile-avatar,.top-avatar {display:grid;place-items:center;flex:0 0 auto;background:linear-gradient(135deg,#8f75fb,#4531bd);border:2px solid #fff;box-shadow:0 2px 7px #6b61a32c;color:#fff;font-weight:800;border-radius:50%}
+.profile-avatar {width:36px;height:36px;font-size:17px}
+.profile-text {flex:1;min-width:0}.profile-text strong {display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-text small {display:block;font-size:10px;color:var(--muted)}.side-profile a {font-size:13px;color:#66708a}
+.main-column {min-width:0;flex:1}
+.app-header {padding:22px 30px 18px;display:flex;gap:22px;justify-content:space-between;align-items:center;border-bottom:1px solid #e9eaf4;background:rgba(255,255,255,.68)}
+.header-greeting {display:flex;gap:12px;align-items:center}
+.header-greeting strong {display:block;font-size:19px;font-weight:800;letter-spacing:-.035em}
+.header-greeting small {display:block;color:#81889e;font-size:11px;margin-top:1px}
+.header-actions {display:flex;align-items:center;gap:12px}
+.header-search {display:flex;align-items:center;background:#fff;border:1px solid #e7e8f2;box-shadow:0 3px 12px #31304e0a;padding:0 10px;gap:9px;border-radius:12px;width:270px;height:42px;color:#868ca0}
+.header-search input {min-width:0;flex:1;background:transparent;border:0;outline:0;font-size:11.5px;color:var(--ink)}
+.header-search button {border:0;color:#7064c5;background:transparent;padding:4px}
+.notification-button {height:42px;width:42px;position:relative;background:#fff;border:1px solid #e7e8f2;border-radius:12px;display:grid;place-items:center;font-size:17px;color:#38425e;box-shadow:0 3px 12px #31304e0a}
+.notification-dot {height:9px;width:9px;position:absolute;top:8px;right:8px;border-radius:50%;background:#ff5469;border:2px solid #fff}
+.top-avatar {width:39px;height:39px;font-size:16px}
+.mobile-menu-button {display:none;border:0;background:#f0eefe;padding:8px 11px;border-radius:10px;color:var(--purple);font-size:19px}
+.content-area {max-width:1660px;margin:auto;padding:25px 28px 18px}
+.app-footer {font-size:10px;color:#9da4b5;text-align:center;margin-top:30px;padding:15px 0 4px}
+.page-heading {display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 0 21px}
+.page-heading h1 {font-size:25px;margin:1px 0 3px;line-height:1.28}
+.page-heading p {margin:0;color:#828aa0;font-size:12px}
+.eyebrow {font-size:9px;letter-spacing:.15em;font-weight:800;color:#7d67db;margin-bottom:3px}
+.page-cta,.header-buttons {display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn {border-radius:10px;font-weight:700;font-size:12px;padding:10px 13px}
+.btn i {margin-right:4px}
+.btn-primary {background:#6650eb;border-color:#6650eb;box-shadow:0 3px 8px #6850f52a}
+.btn-primary:hover,.btn-primary:focus {background:#543bd9;border-color:#543bd9}
+.btn-soft {border:1px solid #e6e7f1;background:#fff;color:#3e4763;box-shadow:0 2px 8px #25224409}
+.btn-soft:hover {background:#f5f3ff;border-color:#dcd7ff;color:#6450dc}
+.btn-sm {font-size:11px;padding:8px 11px}
+.kpi-card {background:linear-gradient(145deg,#fff 58%,#f7f5ff);border:1px solid #f1f0f8;box-shadow:0 6px 20px #211e550d;border-radius:17px;min-height:135px;padding:19px 19px 15px;overflow:hidden}
+.kpi-green {background:linear-gradient(145deg,#fff 58%,#f0fff6)}
+.kpi-amber {background:linear-gradient(145deg,#fff 58%,#fff8ee)}
+.kpi-red {background:linear-gradient(145deg,#fff 58%,#fff2f5)}
+.kpi-head {display:flex;align-items:center;gap:11px}
+.kpi-icon {width:43px;height:43px;display:grid;place-items:center;border-radius:13px;background:#f0edff;color:#6850e8;font-size:22px}
+.kpi-green .kpi-icon {background:#e5f9eb;color:#22a55b}.kpi-amber .kpi-icon {background:#fff1df;color:#ff940b}.kpi-red .kpi-icon {background:#ffe9ed;color:#f14e68}
+.kpi-label {font-size:12px;font-weight:700}
+.kpi-value {font-size:30px;font-weight:800;letter-spacing:-.06em;margin-top:9px;line-height:1.25}
+.kpi-foot {color:#9aa0b5;font-size:10px;margin-top:5px}
+.panel {background:#fff;border:1px solid #eeeef6;box-shadow:0 5px 20px #2421560b;border-radius:18px;padding:20px 20px 17px;overflow:hidden}
+.panel-title-row {display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:17px}
+.panel-title-row.compact {margin-bottom:10px}
+.panel-title-group {display:flex;align-items:center;gap:11px;min-width:0}
+.panel-title-group h2 {font-size:15px;margin:0 0 3px;font-weight:800;letter-spacing:-.03em}
+.panel-title-group p {font-size:10.5px;color:#858ca1;margin:0}
+.section-icon {width:39px;height:39px;display:grid;place-items:center;flex:0 0 39px;border-radius:11px;font-size:18px}
+.section-icon.purple {background:#f0edff;color:#6a55e7}
+.date-chip {white-space:nowrap;color:#5b627b;background:#fff;border:1px solid #e6e8f1;border-radius:10px;font-size:10px;font-weight:600;padding:8px 10px}
+.chart-wrap {height:275px;padding:8px 0 3px}
+.chart-foot {display:flex;gap:17px;justify-content:center;font-size:10.5px;color:#717a91;margin-top:1px}
+.legend-item {display:flex;gap:7px;align-items:center}.legend-dot {display:inline-block;flex:0 0 auto;height:9px;width:9px;border-radius:50%}
+.dot-purple {background:#6750f3}.dot-lavender {background:#cfc8ff}.green {background:#42bb85}.amber {background:#ffbb52}.red {background:#fa6b74}
+.stack-panels {display:flex;flex-direction:column;gap:16px;height:100%}
+.stack-panels .panel {flex:1}
+.circle-help {color:#878da6;font-size:15px}
+.alert-chart-section {display:flex;align-items:center;gap:14px;justify-content:space-between}
+.donut-wrap {height:152px;min-width:150px;width:150px}
+.donut-legend {min-width:0;flex:1}
+.donut-legend div {display:flex;align-items:center;border-bottom:1px solid #f1f2f8;gap:8px;color:#68718b;font-size:11px;padding:8px 0}
+.donut-legend div:last-child {border-bottom:0}
+.donut-legend strong {margin-left:auto;color:var(--ink);font-size:12px}
+.tiny-count {white-space:nowrap;border-radius:9px;background:#f0edff;color:#674dde;font-size:10px;font-weight:800;padding:6px 9px}
+.recommend-list {display:flex;flex-direction:column}
+.recommend-item {display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid #f0f1f7}
+.product-icon {height:35px;width:35px;border-radius:10px;background:#f2f1fd;display:grid;place-items:center;color:#8475e7;font-size:18px;flex:0 0 35px}
+.recommend-name {min-width:0;flex:1}
+.recommend-name strong {display:block;font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recommend-name small {display:block;color:#8991a6;font-size:10px}
+.recommend-qty {text-align:right;white-space:nowrap}
+.recommend-qty small {display:block;color:#8c92a8;font-size:9px}
+.recommend-qty strong {display:block;font-size:10px}
+.recommend-action {margin-left:2px}
+.small-action {white-space:nowrap;border-radius:8px;border:1px solid #dcd5ff;padding:7px 8px;background:#f6f4ff;color:#6248de;font-size:9px;font-weight:800;display:inline-block;cursor:pointer}
+.small-action:hover {background:#ece8ff}
+.empty-panel {padding:20px;color:#a3a8b5;text-align:center;font-size:11px;margin:0}
+.product-table-card {padding:0}
+.product-table-card .panel-title-row {padding:19px 20px 16px;margin:0}
+.stock-table {font-size:11px;min-width:740px;vertical-align:middle}
+.stock-table th {background:#f8f8fe;border-color:#f1f1f9;padding:11px 15px;font-size:10px;color:#687089;font-weight:700;white-space:nowrap}
+.stock-table td {padding:9px 15px;border-color:#f0f1f5;color:#5e6680}
+.stock-table tbody tr:last-child td {border-bottom:0}
+.table-product {display:flex;align-items:center;gap:10px;white-space:nowrap;color:#28314b}
+.table-product .product-icon {height:30px;width:30px;flex-basis:30px;font-size:16px}
+.sku {font-weight:600;color:#737d97}
+.status-pill {border-radius:30px;display:inline-flex;align-items:center;gap:5px;padding:5px 8px;font-size:9px;font-weight:700;white-space:nowrap}
+.status-pill span {display:inline-block;height:6px;width:6px;border-radius:50%;background:currentColor}
+.status-good {background:#e8f8ee;color:#159c59}.status-low {background:#fff2df;color:#df850c}.status-out {background:#ffe8ec;color:#e44a60}.status-inactive {background:#eceef4;color:#75809b}
+.table-actions {display:flex;gap:5px}.icon-btn {display:inline-flex;align-items:center;justify-content:center;width:31px;height:31px;border:1px solid #e7e7f2;color:#687088;border-radius:9px;background:#fff;font-size:13px}
+.icon-btn:hover {color:var(--purple);background:#f4f2ff}
+.muted {color:#a6abba}
+.mini-summary {display:flex;gap:13px;align-items:center;background:#fff;border:1px solid #eeedf6;border-radius:16px;padding:19px;min-height:110px;box-shadow:0 5px 16px #1f1a5809}
+.mini-summary-icon {font-size:23px;height:48px;width:48px;background:#f1efff;display:grid;place-items:center;border-radius:14px;color:#6953e6}
+.mini-summary span:not(.mini-summary-icon),.mini-summary small {display:block;font-size:10px;color:#8990a5}
+.mini-summary strong {font-size:21px;font-weight:800;letter-spacing:-.04em;display:block}
+.form-card,.data-card {background:#fff;border:1px solid #ececf5;border-radius:17px;box-shadow:0 6px 24px #25224b0b;padding:23px}
+.form-label {font-size:11px;color:#565f7a;font-weight:700;margin-bottom:7px}
+.form-control,.form-select {border-color:#e5e7f1;border-radius:10px;padding:10px 12px;font-size:12px;background-color:#fff}
+.form-control:focus,.form-select:focus {border-color:#9484ff;box-shadow:0 0 0 .2rem #6d53f225}
+.data-card .stock-table {min-width:720px}
+.table-filter {display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:15px}
+.table-filter input {width:240px;max-width:100%}.table-filter select {width:170px;max-width:100%}
+.table-status {display:inline-flex;padding:5px 9px;border-radius:8px;font-weight:700;font-size:10px}
+.table-status.DRAFT {background:#f1edff;color:#674be6}.table-status.APPROVED {background:#e5f8ed;color:#198e57}.table-status.ORDERED {background:#e7f1ff;color:#3469c6}.table-status.REJECTED {background:#fff0f1;color:#df5265}.table-status.FULFILLED,.table-status.RECEIVED {background:#e9f8ef;color:#168856}
+.inline-action-form {display:inline-block;margin-right:5px}
+.action-btn {border:1px solid #e5e1ff;background:#f7f5ff;color:#6952df;font-size:10px;padding:7px 9px;font-weight:700;border-radius:8px;white-space:nowrap}
+.action-btn:hover {background:#eeeaff}.action-btn.approve {background:#e9f7ef;border-color:#ceeddc;color:#198e57}.action-btn.reject {background:#fff0f1;border-color:#ffdddf;color:#d64a5b}.action-btn.receive {background:#eee9ff;border-color:#ddd6ff;color:#5c46ce}
+.stat-strip {display:flex;gap:15px;flex-wrap:wrap;margin-bottom:17px}
+.report-stat {border:1px solid #efedf8;border-radius:14px;padding:17px;background:#fff;flex:1;min-width:180px}.report-stat span {display:block;color:#7e87a0;font-size:11px}.report-stat strong {display:block;font-size:24px;margin-top:7px}
+.auth-layout {min-height:100vh;display:grid;place-items:center;padding:25px;background:radial-gradient(circle at 15% 20%,#dedbff 0,transparent 33%),radial-gradient(circle at 85% 60%,#e5dfff 0,transparent 30%),#f7f8ff}
+.login-card {width:min(430px,100%);background:#fff;border:1px solid #e9e7f5;padding:35px;border-radius:22px;box-shadow:0 20px 65px #6159a62c}
+.login-brand {display:flex;gap:10px;align-items:center;font-size:21px;font-weight:800;color:#201d43;margin-bottom:27px}
+.login-brand span {width:42px;height:42px;background:#6550e9;color:#fff;border-radius:13px;display:grid;place-items:center}
+.login-card h1 {font-size:23px;margin-bottom:6px}
+.login-card p {font-size:12px;color:#8a90a6}
+.mobile-overlay {display:none}
+@media(max-width:1250px){.side-panel{width:224px;flex-basis:224px;padding:18px 12px}.content-area{padding:23px 18px}.app-header{padding:18px 19px}.header-greeting strong{font-size:16px}.header-search{width:215px}.panel{padding:16px}.product-table-card{padding:0}.panel-title-group h2{font-size:13px}.alert-chart-section{gap:8px}.donut-wrap{width:120px;min-width:120px;height:120px}.recommend-item{gap:5px}.recommend-action{margin-left:0}}
+@media(max-width:1020px){.side-panel{position:fixed;left:0;top:0;height:100%;transform:translateX(-110%);transition:transform .25s ease;width:252px}.menu-open .side-panel{transform:translateX(0)}.menu-open .mobile-overlay{display:block;position:fixed;inset:0;background:#18163480;z-index:25}.mobile-menu-button{display:inline-block}.header-greeting strong{font-size:17px}.header-search{width:250px}}
+@media(max-width:767px){.app-header{padding:15px 14px}.header-search{display:none}.content-area{padding:20px 12px}.header-greeting strong{font-size:14px}.header-greeting small{font-size:10px}.top-avatar{height:34px;width:34px}.notification-button{height:35px;width:35px}.page-heading{align-items:flex-start;flex-direction:column}.page-heading h1{font-size:23px}.page-cta{width:100%}.panel-title-row{flex-wrap:wrap}.date-chip{font-size:9px}.chart-wrap{height:240px}.kpi-card{padding:15px;min-height:125px}.kpi-icon{height:35px;width:35px;font-size:19px}.kpi-head{gap:7px}.kpi-label{font-size:10px}.kpi-value{font-size:26px}.alert-chart-section{justify-content:flex-start;gap:18px}.donut-wrap{width:145px;min-width:145px;height:145px}.table-filter input,.table-filter select{width:100%}.form-card,.data-card{padding:16px}}
+
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+{% if user.is_authenticated %}
+<div id="screenOverlay" class="mobile-overlay" onclick="document.body.classList.remove('menu-open')"></div>
+<div class="erp-shell">
+  <aside class="side-panel" id="side-panel">
+    <a class="brand" href="{% url 'inventory:dashboard' %}">
+      <span class="brand-logo"><i class="bi bi-boxes"></i></span>
+      <span><strong>SmartStock ERP</strong><small>Inventory & Reorder System</small></span>
+    </a>
+    <div class="nav-section-label">WORKSPACE</div>
+    <nav class="menu-links" aria-label="Main navigation">
+      <a href="{% url 'inventory:dashboard' %}" class="menu-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
+      <a href="{% url 'inventory:products' %}" class="menu-item {% if request.resolver_match.url_name == 'products' or request.resolver_match.url_name == 'product_create' or request.resolver_match.url_name == 'product_edit' or request.resolver_match.url_name == 'stock_movement' %}active{% endif %}"><i class="bi bi-box-seam"></i><span>Inventory</span></a>
+      <a href="{% url 'inventory:warehouses' %}" class="menu-item {% if request.resolver_match.url_name == 'warehouses' or request.resolver_match.url_name == 'warehouse_create' %}active{% endif %}"><i class="bi bi-buildings"></i><span>Warehouses</span></a>
+      <a href="{% url 'inventory:suppliers' %}" class="menu-item {% if request.resolver_match.url_name == 'suppliers' or request.resolver_match.url_name == 'supplier_create' %}active{% endif %}"><i class="bi bi-people"></i><span>Suppliers</span></a>
+      <div class="nav-section-label second-label">OPERATIONS</div>
+      <a href="{% url 'inventory:requisitions' %}" class="menu-item {% if request.resolver_match.url_name == 'requisitions' %}active{% endif %}"><i class="bi bi-file-earmark-check"></i><span>Requisitions</span></a>
+      <a href="{% url 'inventory:purchase_orders' %}" class="menu-item {% if request.resolver_match.url_name == 'purchase_orders' %}active{% endif %}"><i class="bi bi-cart-check"></i><span>Purchase Orders</span></a>
+      <a href="{% url 'inventory:movements' %}" class="menu-item {% if request.resolver_match.url_name == 'movements' %}active{% endif %}"><i class="bi bi-arrow-left-right"></i><span>Stock Movements</span></a>
+      <a href="{% url 'inventory:reports' %}" class="menu-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"><i class="bi bi-bar-chart"></i><span>Reports</span></a>
+      <a href="{% url 'inventory:settings' %}" class="menu-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i><span>Settings</span></a>
+      <a href="#" class="menu-item" onclick="event.preventDefault();document.getElementById('aiChatToggle').click()"><i class="bi bi-robot"></i><span>AI Assistant</span><span class="tiny-count" style="margin-left:auto">NEW</span></a>
+    </nav>
+    <div class="sidebar-spacer"></div>
+    <div class="reorder-promo">
+      <div class="promo-icon"><i class="bi bi-box-seam"></i><i class="bi bi-arrow-repeat"></i></div>
+      <h3>Automated Reordering</h3>
+      <p>Keep stock at optimal levels with smart reorder rules.</p>
+      <a href="{% url 'inventory:reorder_rules' %}" class="btn btn-light btn-sm w-100"><i class="bi bi-lightning-charge-fill"></i> Manage Reorder Rules</a>
+    </div>
+    <div class="side-profile">
+      <div class="profile-avatar">{{ request.user.username|slice:':1'|upper }}</div>
+      <div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username|truncatechars:18 }}</strong><small>{% if request.user.is_staff %}Administrator{% else %}Viewer{% endif %}</small></div>
+      <a href="{% url 'inventory:settings' %}" aria-label="Profile settings"><i class="bi bi-chevron-down"></i></a>
+    </div>
+  </aside>
+  <div class="main-column">
+    <header class="app-header">
+      <div class="header-greeting">
+        <button class="mobile-menu-button" aria-label="Open navigation" onclick="document.body.classList.toggle('menu-open')"><i class="bi bi-list"></i></button>
+        <div><strong>Welcome back, {{ request.user.first_name|default:request.user.username }} <span class="wave">👋</span></strong><small>Here's what's happening in your inventory today.</small></div>
+      </div>
+      <div class="header-actions">
+        <form class="header-search" action="{% url 'inventory:products' %}" method="get" role="search"><i class="bi bi-search"></i><input type="search" name="q" placeholder="Search products or SKU..." aria-label="Search products"><button type="submit" aria-label="Submit search"><i class="bi bi-arrow-right"></i></button></form>
+        <a class="notification-button" href="{% url 'inventory:products' %}?status=low" title="Low-stock notifications" aria-label="Low-stock notifications"><i class="bi bi-bell"></i>{% if nav_low_stock_count %}<span class="notification-dot"></span>{% endif %}</a>
+        <div class="top-avatar" title="{{ request.user.username }}">{{ request.user.username|slice:':1'|upper }}</div>
+      </div>
+    </header>
+    <main class="content-area">
+      {% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>{% endfor %}
+      {% block content %}{% endblock %}
+      <footer class="app-footer">SmartStock ERP • Internship demonstration • Independent educational prototype, not affiliated with PrismERP</footer>
+    </main>
+  </div>
+</div>
+{% else %}
+<main class="auth-layout">{% block auth_content %}{% endblock %}</main>
+{% endif %}
+{% if user.is_authenticated %}
+{% include "inventory/components/ai_chat_widget.html" %}
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} | SmartStock ERP{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">SMARTSTOCK MANAGEMENT</div><h1>{{ title }}</h1><p>Enter the details below and save your changes.</p></div></div>
+<div class="form-card" style="max-width:710px"><form method="post" novalidate>{% csrf_token %}{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}{% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for err in field.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}</div>{% endfor %}<div class="d-flex gap-2 mt-4"><button class="btn btn-primary" type="submit">Save Changes</button><a class="btn btn-soft" href="{% url back_url %}">Cancel</a></div></form></div>
+{% endblock %}

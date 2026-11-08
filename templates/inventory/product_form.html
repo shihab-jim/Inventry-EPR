@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} | SmartStock ERP{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">PRODUCT SETUP</div><h1>{{ title }}</h1><p>Set the SKU, supplier, warehouse, unit price, and replenishment limits.</p></div></div>
+<div class="form-card" style="max-width:810px"><form method="post" novalidate>{% csrf_token %}{% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}<div class="row g-3">{% for field in form %}<div class="col-md-6"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{% if field.field.widget.input_type == 'checkbox' %}<div class="form-check">{{ field }}</div>{% else %}{{ field }}{% endif %}{% for err in field.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}</div>{% endfor %}</div><div class="d-flex gap-2 mt-4"><button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save Product</button><a class="btn btn-soft" href="{% url 'inventory:products' %}">Cancel</a></div></form></div>
+{% endblock %}

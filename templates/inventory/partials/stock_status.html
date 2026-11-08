@@ -1,0 +1,4 @@
+{% if not product.is_active %}<span class="status-pill status-inactive"><span></span>Inactive</span>
+{% elif product.current_stock == 0 %}<span class="status-pill status-out"><span></span>Out of Stock</span>
+{% elif product.needs_reorder %}<span class="status-pill status-low"><span></span>Low Stock</span>
+{% else %}<span class="status-pill status-good"><span></span>In Stock</span>{% endif %}

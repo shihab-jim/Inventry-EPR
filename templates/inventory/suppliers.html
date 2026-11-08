@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block title %}Suppliers | SmartStock ERP{% endblock %}
+{% block content %}
+<div class="page-heading"><div><div class="eyebrow">PARTNERS</div><h1>Suppliers</h1><p>Maintain supplier contacts for purchase orders.</p></div>{% if user.is_staff %}<a href="{% url 'inventory:supplier_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Supplier</a>{% endif %}</div>
+<div class="data-card"><div class="table-responsive"><table class="table stock-table table-hover"><thead><tr><th>Supplier Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Products</th></tr></thead><tbody>{% for s in suppliers %}<tr><td class="fw-bold">{{ s.name }}</td><td>{{ s.email|default:'—' }}</td><td>{{ s.phone|default:'—' }}</td><td>{{ s.address|default:'—' }}</td><td>{{ s.products.count }}</td></tr>{% empty %}<tr><td colspan="5" class="empty-panel">No suppliers yet.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

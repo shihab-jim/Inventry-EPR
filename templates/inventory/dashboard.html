@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}Dashboard | SmartStock ERP{% endblock %}
+{% block content %}
+<div class="page-heading dashboard-heading">
+  <div><div class="eyebrow">OPERATIONS OVERVIEW</div><h1>Inventory Dashboard</h1><p>Track your stock, identify shortages, and keep orders moving.</p></div>
+  <div class="page-cta">
+    <button type="button" class="btn btn-soft" onclick="window.askSmartStockAI('Give me an overview of my inventory status')"><i class="bi bi-stars" style="color: #6550ea;"></i> Ask AI Assistant</button>
+    <a href="{% url 'inventory:products' %}" class="btn btn-soft"><i class="bi bi-box"></i> View Inventory</a>
+    {% if user.is_staff %}<a href="{% url 'inventory:product_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Product</a>{% endif %}
+  </div>
+</div>
+<div class="row g-3 kpi-grid">
+  <div class="col-6 col-xl-3"><div class="kpi-card kpi-purple"><div class="kpi-head"><span class="kpi-icon"><i class="bi bi-boxes"></i></span><span class="kpi-label">Total Products</span></div><div class="kpi-value">{{ product_count|intcomma }}</div><div class="kpi-foot">Active products in catalog</div></div></div>
+  <div class="col-6 col-xl-3"><div class="kpi-card kpi-green"><div class="kpi-head"><span class="kpi-icon"><i class="bi bi-box-seam"></i></span><span class="kpi-label">In Stock</span></div><div class="kpi-value">{{ in_stock_count|intcomma }}</div><div class="kpi-foot">Above reorder threshold</div></div></div>
+  <div class="col-6 col-xl-3"><div class="kpi-card kpi-amber"><div class="kpi-head"><span class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></span><span class="kpi-label">Low Stock</span></div><div class="kpi-value">{{ low_stock_count|intcomma }}</div><div class="kpi-foot">At or below reorder level</div></div></div>
+  <div class="col-6 col-xl-3"><div class="kpi-card kpi-red"><div class="kpi-head"><span class="kpi-icon"><i class="bi bi-x-circle"></i></span><span class="kpi-label">Out of Stock</span></div><div class="kpi-value">{{ out_stock_count|intcomma }}</div><div class="kpi-foot">Products at zero quantity</div></div></div>
+</div>
+
+<!-- AI Copilot Intelligence Banner -->
+<div class="row g-3 mt-1">
+  <div class="col-12">
+    <div class="panel" style="background: linear-gradient(135deg, #271c66 0%, #4a36aa 55%, #6650eb 100%); color: #fff; border: none; padding: 18px 22px;">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.18); display: grid; place-items: center; font-size: 22px; flex-shrink: 0;">
+            <i class="bi bi-stars"></i>
+          </div>
+          <div>
+            <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: #d6ccff; font-weight: 800;">SmartStock AI Copilot</div>
+            <h2 style="color: #fff; font-size: 16px; margin: 2px 0; font-weight: 800;">Real-time Inventory Intelligence</h2>
+            <p style="color: #ece8ff; font-size: 11.5px; margin: 0;">Ask questions in natural language, detect stockout risks, and optimize procurement decisions.</p>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <button type="button" class="btn btn-sm" style="background: #fff; color: #513ad1; font-weight: 700; border-radius: 10px;" onclick="window.askSmartStockAI('Give me an executive inventory health audit with top priorities')">
+            <i class="bi bi-file-earmark-medical"></i> Executive Audit
+          </button>
+          <button type="button" class="btn btn-sm" style="background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.3); font-weight: 600; border-radius: 10px;" onclick="window.askSmartStockAI('Which products are running low or out of stock, and what should I reorder?')">
+            <i class="bi bi-exclamation-triangle"></i> Low Stock Alerts
+          </button>
+          <button type="button" class="btn btn-sm" style="background: rgba(255,255,255,0.16); color: #fff; border: 1px solid rgba(255,255,255,0.3); font-weight: 600; border-radius: 10px;" onclick="window.askSmartStockAI('Analyze my stock movement trends from the last 7 days')">
+            <i class="bi bi-graph-up-arrow"></i> Movement Analysis
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row g-3 mt-1">
+  <div class="col-xl-7"><section class="panel h-100"><div class="panel-title-row"><div class="panel-title-group"><span class="section-icon purple"><i class="bi bi-graph-up-arrow"></i></span><div><h2>Stock Movement Trend</h2><p>Received and issued units over the last 7 days</p></div></div><span class="date-chip"><i class="bi bi-calendar3"></i> Last 7 Days</span></div><div class="chart-wrap"><canvas id="movementChart" role="img" aria-label="Seven-day stock in and out bar chart"></canvas></div><div class="chart-foot"><span class="legend-item"><span class="legend-dot dot-purple"></span> Stock In</span><span class="legend-item"><span class="legend-dot dot-lavender"></span> Stock Out</span></div></section></div>
+  <div class="col-xl-5"><div class="stack-panels"><section class="panel"><div class="panel-title-row"><div class="panel-title-group"><span class="section-icon purple"><i class="bi bi-bell"></i></span><div><h2>Inventory Alerts</h2><p>Product health distribution</p></div></div><a href="{% url 'inventory:products' %}?status=low" class="circle-help" title="View low stock"><i class="bi bi-arrow-up-right"></i></a></div><div class="alert-chart-section"><div class="donut-wrap"><canvas id="statusChart" role="img" aria-label="Product stock status doughnut chart"></canvas></div><div class="donut-legend"><div><span class="legend-dot green"></span> In Stock <strong>{{ in_stock_count }}</strong></div><div><span class="legend-dot amber"></span> Low Stock <strong>{{ low_stock_count }}</strong></div><div><span class="legend-dot red"></span> Out of Stock <strong>{{ out_stock_count }}</strong></div></div></div></section>
+  <section class="panel"><div class="panel-title-row compact"><div class="panel-title-group"><span class="section-icon purple"><i class="bi bi-lightning-charge"></i></span><div><h2>Auto Reorder Recommendations</h2><p>Items at or below their reorder level</p></div></div><span class="tiny-count">{{ recommendations|length }} items</span></div>
+  <div class="recommend-list">{% for item in recommendations %}
+    <div class="recommend-item"><div class="product-icon"><i class="bi bi-box-seam"></i></div><div class="recommend-name"><strong>{{ item.product.name|truncatechars:28 }}</strong><small>{{ item.product.sku }}</small></div><div class="recommend-qty"><small>Suggest</small><strong>{{ item.quantity }} units</strong></div><div class="recommend-action">
+    {% if item.request %}
+      {% if item.request.status == 'APPROVED' and user.is_staff %}<form method="post" action="{% url 'inventory:purchase_order_create' item.request.pk %}">{% csrf_token %}<button class="small-action" type="submit">Create PO</button></form>
+      {% else %}<a class="small-action" href="{% url 'inventory:requisitions' %}">View PR</a>{% endif %}
+    {% elif user.is_staff %}<form method="post" action="{% url 'inventory:reorder_generate' item.product.pk %}">{% csrf_token %}<button class="small-action" type="submit">Create PR</button></form>
+    {% else %}<a class="small-action" href="{% url 'inventory:requisitions' %}">View</a>{% endif %}
+    </div></div>
+    {% empty %}<p class="empty-panel">No low-stock products. Reorder recommendations will appear here.</p>{% endfor %}
+  </div></section></div></div>
+</div>
+<div class="row g-3 mt-1">
+  <div class="col-12"><section class="panel product-table-card"><div class="panel-title-row"><div class="panel-title-group"><span class="section-icon purple"><i class="bi bi-box-seam"></i></span><div><h2>Product Inventory</h2><p>Current product quantities and warehouse locations</p></div></div><div class="header-buttons"><a href="{% url 'inventory:products' %}" class="btn btn-soft btn-sm"><i class="bi bi-funnel"></i> Filter</a><a href="{% url 'inventory:export_csv' 'products' %}" class="btn btn-soft btn-sm"><i class="bi bi-download"></i> Export</a><a href="{% url 'inventory:products' %}" class="btn btn-soft btn-sm">See All <i class="bi bi-arrow-right"></i></a></div></div><div class="table-responsive"><table class="table table-hover stock-table mb-0"><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Warehouse / Location</th><th>Units</th><th>Status</th><th>Action</th></tr></thead><tbody>{% for p in recent_products %}<tr><td><div class="table-product"><span class="product-icon"><i class="bi bi-box-seam"></i></span><strong>{{ p.name }}</strong></div></td><td class="sku">{{ p.sku }}</td><td>{{ p.category|default:'—' }}</td><td>{{ p.warehouse|default:'Unassigned' }}</td><td class="fw-semibold">{{ p.current_stock|intcomma }}</td><td>{% include 'inventory/partials/stock_status.html' with product=p %}</td><td><div class="table-actions">{% if user.is_staff %}<a href="{% url 'inventory:product_edit' p.pk %}" class="icon-btn" aria-label="Edit {{ p.sku }}" title="Edit"><i class="bi bi-pencil"></i></a><a href="{% url 'inventory:stock_movement' p.pk %}" class="icon-btn" aria-label="Record stock movement for {{ p.sku }}" title="Stock In / Out"><i class="bi bi-arrow-left-right"></i></a>{% else %}<span class="muted">View only</span>{% endif %}</div></td></tr>{% empty %}<tr><td colspan="7" class="empty-panel">No products yet. Add the first product to get started.</td></tr>{% endfor %}</tbody></table></div></section></div>
+</div>
+<div class="row g-3 mt-1"><div class="col-md-4"><div class="mini-summary"><span class="mini-summary-icon"><i class="bi bi-currency-dollar"></i></span><div><span>Total Inventory Value</span><strong>{{ inventory_value|floatformat:2|intcomma }}</strong><small>Based on stored unit prices</small></div></div></div><div class="col-md-4"><div class="mini-summary"><span class="mini-summary-icon"><i class="bi bi-cart"></i></span><div><span>Open Requisitions</span><strong>{{ open_request_count }}</strong><small>Awaiting order or delivery</small></div></div></div><div class="col-md-4"><div class="mini-summary"><span class="mini-summary-icon"><i class="bi bi-boxes"></i></span><div><span>Total Units on Hand</span><strong>{{ total_units|intcomma }}</strong><small>Across active products</small></div></div></div></div>
+{{ movement_chart|json_script:"movement-data" }}
+{% endblock %}
+{% block extra_scripts %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script><script>
+const sourceEl = document.getElementById('movement-data');
+if (window.Chart && sourceEl) {
+  const data = JSON.parse(sourceEl.textContent);
+  Chart.defaults.font.family = "Inter, system-ui, sans-serif";
+  new Chart(document.getElementById('movementChart'), {
+    type: 'bar',
+    data: {labels: data.labels, datasets: [
+      {label:'Stock In', data:data.received, backgroundColor:'#6750f3', borderRadius:7, maxBarThickness:26},
+      {label:'Stock Out', data:data.issued, backgroundColor:'#cfc8ff', borderRadius:7, maxBarThickness:26}
+    ]}, options: {responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false},border:{display:false},ticks:{color:'#8790a5'}},y:{beginAtZero:true,border:{display:false},grid:{color:'#edf0f7'},ticks:{precision:0,color:'#8790a5'}}}}
+  });
+  const healthy = Number('{{ in_stock_count }}'), low = Number('{{ low_stock_count }}'), out = Number('{{ out_stock_count }}');
+  const empty = healthy + low + out === 0;
+  new Chart(document.getElementById('statusChart'), {type:'doughnut',
+    data:{labels:['In Stock','Low Stock','Out of Stock'],datasets:[{data:empty?[1,0,0]:[healthy,low,out],backgroundColor:empty?['#e7e9f4','#e7e9f4','#e7e9f4']:['#42bb85','#ffbb52','#fa6b74'],borderWidth:0,hoverOffset:3}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:!empty}}}
+  });
+}
+</script>{% endblock %}
