@@ -236,9 +236,12 @@ def purchase_order_create(request, pk):
     try:
         order = create_purchase_order(requisition_id=pk, user=request.user)
         messages.success(request, f"PO-{order.pk} created and sent to order queue.")
+        return redirect("inventory:purchase_orders")
     except ValidationError as exc:
         messages.error(request, "; ".join(exc.messages))
-    return redirect("inventory:purchase_orders")
+    except Exception as exc:
+        messages.error(request, f"Could not create purchase order: {exc}")
+    return redirect("inventory:requisitions")
 
 
 @login_required
@@ -260,6 +263,8 @@ def purchase_order_receive(request, pk):
         messages.success(request, f"PO-{pk} received. Inventory balance updated.")
     except ValidationError as exc:
         messages.error(request, "; ".join(exc.messages))
+    except Exception as exc:
+        messages.error(request, f"Could not receive goods: {exc}")
     return redirect("inventory:purchase_orders")
 
 

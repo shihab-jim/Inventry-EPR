@@ -71,10 +71,8 @@ def transition_requisition(*, requisition_id, action):
 
 @transaction.atomic
 def create_purchase_order(*, requisition_id, user=None):
-    requisition = (
-        PurchaseRequisition.objects.select_for_update()
-        .select_related("product__supplier").get(pk=requisition_id)
-    )
+    # Lock the requisition row without outer joins to support PostgreSQL row locking
+    requisition = PurchaseRequisition.objects.select_for_update().get(pk=requisition_id)
     if requisition.status != PurchaseRequisition.Status.APPROVED:
         raise ValidationError("Approve the draft requisition before creating an order.")
     if not requisition.product.supplier:
@@ -94,10 +92,8 @@ def create_purchase_order(*, requisition_id, user=None):
 @transaction.atomic
 def receive_purchase_order(*, order_id, user=None):
     """Full quantity goods receipt only; partial receipts are outside the MVP."""
-    order = (
-        PurchaseOrder.objects.select_for_update()
-        .select_related("requisition__product").get(pk=order_id)
-    )
+    # Lock the purchase order row without outer joins for PostgreSQL compatibility
+    order = PurchaseOrder.objects.select_for_update().get(pk=order_id)
     if order.status != PurchaseOrder.Status.ORDERED:
         raise ValidationError("This purchase order has already been received.")
     # Order's one receipt is guarded by transaction plus the order status check.
