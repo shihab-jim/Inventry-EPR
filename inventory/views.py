@@ -6,6 +6,8 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
@@ -383,6 +385,33 @@ def profile_settings(request):
     return render(request, "inventory/simple_form.html", {
         "form": form, "title": "Profile settings", "back_url": "inventory:dashboard"
     })
+
+
+@login_required
+def user_profile(request):
+    """Individual profile page with account info and activity stats."""
+    user = request.user
+    stats = {
+        "movements": StockMovement.objects.filter(created_by=user).count(),
+        "requisitions": PurchaseRequisition.objects.filter(created_by=user).count(),
+        "purchase_orders": PurchaseOrder.objects.filter(created_by=user).count(),
+    }
+    return render(request, "inventory/profile.html", {"stats": stats})
+
+
+@login_required
+def change_password(request):
+    """Password change view with styled form."""
+    form = PasswordChangeForm(request.user, request.POST or None)
+    # Apply Bootstrap styling to password form fields
+    for field in form.fields.values():
+        field.widget.attrs["class"] = "form-control"
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        update_session_auth_hash(request, user)
+        messages.success(request, "Your password has been updated successfully!")
+        return redirect("inventory:profile")
+    return render(request, "inventory/change_password.html", {"form": form})
 
 
 # ---------------------------------------------------------------------------

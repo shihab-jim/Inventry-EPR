@@ -58,6 +58,19 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
 .notification-dot {height:9px;width:9px;position:absolute;top:8px;right:8px;border-radius:50%;background:#ff5469;border:2px solid #fff}
 .top-avatar {width:39px;height:39px;font-size:16px}
 .mobile-menu-button {display:none;border:0;background:#f0eefe;padding:8px 11px;border-radius:10px;color:var(--purple);font-size:19px}
+.profile-dropdown {display:none;position:absolute;bottom:100%;left:0;right:0;background:#fff;border:1px solid #eeeef6;border-radius:13px;padding:6px;box-shadow:0 8px 30px #2c296018;margin-bottom:8px;z-index:60}
+.profile-dropdown.show {display:block}
+.profile-dropdown a,.dropdown-logout {display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:11.5px;font-weight:600;color:#4b5271;white-space:nowrap;border:0;background:transparent;width:100%;cursor:pointer;text-align:left}
+.profile-dropdown a:hover,.dropdown-logout:hover {background:#f3f1ff;color:var(--purple)}
+.dropdown-logout {color:#e04458}
+.dropdown-logout:hover {background:#fff0f2;color:#d63a4e}
+.top-avatar-wrap {position:relative}
+.top-avatar-dropdown {display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid #eeeef6;border-radius:13px;padding:6px;box-shadow:0 8px 30px #2c296018;margin-top:8px;z-index:60;min-width:170px}
+.top-avatar-dropdown.show {display:block}
+.top-avatar-dropdown a,.top-dropdown-logout {display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:11.5px;font-weight:600;color:#4b5271;white-space:nowrap;border:0;background:transparent;width:100%;cursor:pointer;text-align:left}
+.top-avatar-dropdown a:hover,.top-dropdown-logout:hover {background:#f3f1ff;color:var(--purple)}
+.top-dropdown-logout {color:#e04458}
+.top-dropdown-logout:hover {background:#fff0f2;color:#d63a4e}
 .content-area {max-width:1660px;margin:auto;padding:25px 28px 18px}
 .app-footer {font-size:10px;color:#9da4b5;text-align:center;margin-top:30px;padding:15px 0 4px}
 .page-heading {display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 0 21px}
@@ -195,10 +208,19 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
       <p>Keep stock at optimal levels with smart reorder rules.</p>
       <a href="{% url 'inventory:reorder_rules' %}" class="btn btn-light btn-sm w-100"><i class="bi bi-lightning-charge-fill"></i> Manage Reorder Rules</a>
     </div>
-    <div class="side-profile">
+    <div class="side-profile" style="position:relative;cursor:pointer" onclick="event.stopPropagation();document.getElementById('profileDropdown').classList.toggle('show')">
       <div class="profile-avatar">{{ request.user.username|slice:':1'|upper }}</div>
       <div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username|truncatechars:18 }}</strong><small>{% if request.user.is_staff %}Administrator{% else %}Viewer{% endif %}</small></div>
-      <a href="{% url 'inventory:settings' %}" aria-label="Profile settings"><i class="bi bi-chevron-down"></i></a>
+      <i class="bi bi-chevron-down" style="font-size:13px;color:#66708a;transition:transform .2s"></i>
+      <div id="profileDropdown" class="profile-dropdown" onclick="event.stopPropagation()">
+        <a href="{% url 'inventory:profile' %}"><i class="bi bi-person-circle"></i> My Profile</a>
+        <a href="{% url 'inventory:settings' %}"><i class="bi bi-gear"></i> Settings</a>
+        {% if request.user.is_staff %}<a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin Panel</a>{% endif %}
+        <div style="border-top:1px solid #f0f0f8;margin:4px 0"></div>
+        <form method="post" action="{% url 'logout' %}" id="logoutForm">{% csrf_token %}
+          <button type="submit" class="dropdown-logout"><i class="bi bi-box-arrow-left"></i> Log Out</button>
+        </form>
+      </div>
     </div>
   </aside>
   <div class="main-column">
@@ -210,7 +232,18 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
       <div class="header-actions">
         <form class="header-search" action="{% url 'inventory:products' %}" method="get" role="search"><i class="bi bi-search"></i><input type="search" name="q" placeholder="Search products or SKU..." aria-label="Search products"><button type="submit" aria-label="Submit search"><i class="bi bi-arrow-right"></i></button></form>
         <a class="notification-button" href="{% url 'inventory:products' %}?status=low" title="Low-stock notifications" aria-label="Low-stock notifications"><i class="bi bi-bell"></i>{% if nav_low_stock_count %}<span class="notification-dot"></span>{% endif %}</a>
-        <div class="top-avatar" title="{{ request.user.username }}">{{ request.user.username|slice:':1'|upper }}</div>
+        <div class="top-avatar-wrap" onclick="event.stopPropagation();document.getElementById('topAvatarDropdown').classList.toggle('show')">
+          <div class="top-avatar" title="{{ request.user.username }}">{{ request.user.username|slice:':1'|upper }}</div>
+          <div id="topAvatarDropdown" class="top-avatar-dropdown" onclick="event.stopPropagation()">
+            <a href="{% url 'inventory:profile' %}"><i class="bi bi-person-circle"></i> My Profile</a>
+            <a href="{% url 'inventory:settings' %}"><i class="bi bi-gear"></i> Settings</a>
+            {% if request.user.is_staff %}<a href="{% url 'admin:index' %}"><i class="bi bi-shield-lock"></i> Admin Panel</a>{% endif %}
+            <div style="border-top:1px solid #f0f0f8;margin:4px 0"></div>
+            <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+              <button type="submit" class="top-dropdown-logout"><i class="bi bi-box-arrow-left"></i> Log Out</button>
+            </form>
+          </div>
+        </div>
       </div>
     </header>
     <main class="content-area">
@@ -227,6 +260,7 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
 {% include "inventory/components/ai_chat_widget.html" %}
 {% endif %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>document.addEventListener('click',function(e){document.querySelectorAll('.profile-dropdown.show,.top-avatar-dropdown.show').forEach(function(d){if(!d.parentElement.contains(e.target))d.classList.remove('show')})});</script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

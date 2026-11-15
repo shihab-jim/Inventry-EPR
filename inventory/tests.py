@@ -100,3 +100,34 @@ class InventoryTests(TestCase):
 
     def test_dashboard_requires_login(self):
         self.assertEqual(self.client.get(reverse("inventory:dashboard")).status_code, 302)
+
+    def test_user_profile_view_for_admin_and_viewer(self):
+        # Admin profile
+        self.client.force_login(self.admin)
+        res_admin = self.client.get(reverse("inventory:profile"))
+        self.assertEqual(res_admin.status_code, 200)
+        self.assertContains(res_admin, "Super Admin")
+        self.assertContains(res_admin, "Admin Quick Actions")
+
+        # Viewer profile
+        self.client.force_login(self.viewer)
+        res_viewer = self.client.get(reverse("inventory:profile"))
+        self.assertEqual(res_viewer.status_code, 200)
+        self.assertContains(res_viewer, "Viewer")
+        self.assertNotContains(res_viewer, "Admin Quick Actions")
+
+    def test_change_password_view(self):
+        self.client.force_login(self.admin)
+        get_res = self.client.get(reverse("inventory:change_password"))
+        self.assertEqual(get_res.status_code, 200)
+        post_res = self.client.post(reverse("inventory:change_password"), {
+            "old_password": "StrongPass_123!",
+            "new_password1": "NewStrongPass_456!",
+            "new_password2": "NewStrongPass_456!",
+        })
+        self.assertEqual(post_res.status_code, 302)
+
+    def test_logout_redirect(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("logout"))
+        self.assertEqual(response.status_code, 302)

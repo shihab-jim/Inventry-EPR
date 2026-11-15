@@ -24,6 +24,8 @@ urlpatterns = [
     path("reports/", views.reports, name="reports"),
     path("export/<str:kind>/", views.export_csv, name="export_csv"),
     path("settings/", views.profile_settings, name="settings"),
+    path("profile/", views.user_profile, name="profile"),
+    path("profile/change-password/", views.change_password, name="change_password"),
     path("ai/chat/", views.ai_chat, name="ai_chat"),
     path("ai/report/", views.ai_report, name="ai_report"),
 ]

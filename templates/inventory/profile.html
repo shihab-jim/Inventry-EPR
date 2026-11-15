@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}My Profile | SmartStock ERP{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">ACCOUNT</div>
+    <h1>My Profile</h1>
+    <p>View and manage your account information.</p>
+  </div>
+</div>
+
+<div class="row g-4" style="max-width:1100px">
+  <!-- Profile Card -->
+  <div class="col-lg-4">
+    <div class="panel" style="text-align:center;padding:30px 20px">
+      <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#8f75fb,#4531bd);color:#fff;font-size:38px;font-weight:800;display:grid;place-items:center;margin:0 auto 16px;border:4px solid #fff;box-shadow:0 6px 20px #6b61a32c">{{ request.user.username|slice:':1'|upper }}</div>
+      <h3 style="font-size:18px;margin:0 0 3px">{{ request.user.get_full_name|default:request.user.username }}</h3>
+      <p style="font-size:12px;color:#8990a5;margin:0 0 12px">@{{ request.user.username }}</p>
+      <span class="status-pill {% if request.user.is_staff %}status-good{% else %}status-low{% endif %}" style="font-size:11px;padding:6px 14px;margin-bottom:18px;display:inline-flex">
+        <span></span>{% if request.user.is_superuser %}Super Admin{% elif request.user.is_staff %}Administrator{% else %}Viewer{% endif %}
+      </span>
+      <div style="border-top:1px solid #f0f1f8;margin:18px 0 0;padding-top:16px">
+        <a href="{% url 'inventory:settings' %}" class="btn btn-primary btn-sm w-100" style="margin-bottom:8px"><i class="bi bi-pencil-square"></i> Edit Profile</a>
+        <a href="{% url 'inventory:change_password' %}" class="btn btn-soft btn-sm w-100"><i class="bi bi-key"></i> Change Password</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Details -->
+  <div class="col-lg-8">
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-title-row compact">
+        <div class="panel-title-group">
+          <div class="section-icon purple"><i class="bi bi-person-lines-fill"></i></div>
+          <div><h2>Account Information</h2><p>Your personal details and account status</p></div>
+        </div>
+      </div>
+      <div class="profile-info-grid">
+        <div class="profile-info-row">
+          <div class="profile-info-label"><i class="bi bi-person"></i> Full Name</div>
+          <div class="profile-info-value">{{ request.user.get_full_name|default:"Not set" }}</div>
+        </div>
+        <div class="profile-info-row">
+          <div class="profile-info-label"><i class="bi bi-at"></i> Username</div>
+          <div class="profile-info-value">{{ request.user.username }}</div>
+        </div>
+        <div class="profile-info-row">
+          <div class="profile-info-label"><i class="bi bi-envelope"></i> Email</div>
+          <div class="profile-info-value">{{ request.user.email|default:"Not set" }}</div>
+        </div>
+        <div class="profile-info-row">
+          <div class="profile-info-label"><i class="bi bi-shield-check"></i> Role</div>
+          <div class="profile-info-value">
+            {% if request.user.is_superuser %}Super Admin{% elif request.user.is_staff %}Administrator{% else %}Viewer{% endif %}
+          </div>
+        </div>
+        <div class="profile-info-row">
+          <div class="profile-info-label"><i class="bi bi-calendar-plus"></i> Joined</div>
+          <div class="profile-info-value">{{ request.user.date_joined|date:"F j, Y" }}</div>
+        </div>
+        <div class="profile-info-row">
+          <div class="profile-info-label"><i class="bi bi-clock-history"></i> Last Login</div>
+          <div class="profile-info-value">{{ request.user.last_login|date:"F j, Y g:i A"|default:"Never" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity & Stats -->
+    <div class="panel">
+      <div class="panel-title-row compact">
+        <div class="panel-title-group">
+          <div class="section-icon purple"><i class="bi bi-activity"></i></div>
+          <div><h2>Activity Summary</h2><p>Your recent activity on SmartStock</p></div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-sm-4">
+          <div class="mini-summary" style="min-height:90px">
+            <span class="mini-summary-icon"><i class="bi bi-arrow-left-right"></i></span>
+            <div><span>Stock Movements</span><strong>{{ stats.movements }}</strong></div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="mini-summary" style="min-height:90px">
+            <span class="mini-summary-icon" style="background:#e8f8ee;color:#22a55b"><i class="bi bi-file-earmark-check"></i></span>
+            <div><span>Requisitions</span><strong>{{ stats.requisitions }}</strong></div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="mini-summary" style="min-height:90px">
+            <span class="mini-summary-icon" style="background:#fff1df;color:#ff940b"><i class="bi bi-cart-check"></i></span>
+            <div><span>Purchase Orders</span><strong>{{ stats.purchase_orders }}</strong></div>
+          </div>
+        </div>
+      </div>
+
+      {% if request.user.is_staff %}
+      <div style="border-top:1px solid #f0f1f8;margin-top:18px;padding-top:16px">
+        <div class="panel-title-row compact" style="margin-bottom:10px">
+          <div class="panel-title-group">
+            <div class="section-icon purple" style="background:#ffe9ed;color:#f14e68"><i class="bi bi-shield-lock"></i></div>
+            <div><h2>Admin Quick Actions</h2><p>Shortcuts for administrators</p></div>
+          </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <a href="{% url 'admin:index' %}" class="btn btn-soft btn-sm"><i class="bi bi-speedometer2"></i> Django Admin</a>
+          <a href="{% url 'admin:auth_user_changelist' %}" class="btn btn-soft btn-sm"><i class="bi bi-people"></i> Manage Users</a>
+          <a href="{% url 'inventory:reports' %}" class="btn btn-soft btn-sm"><i class="bi bi-bar-chart"></i> Reports</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+.profile-info-grid {display:flex;flex-direction:column}
+.profile-info-row {display:flex;align-items:center;padding:12px 0;border-bottom:1px solid #f4f4fa}
+.profile-info-row:last-child {border-bottom:0}
+.profile-info-label {width:180px;flex:0 0 180px;font-size:12px;font-weight:600;color:#7d859a;display:flex;align-items:center;gap:8px}
+.profile-info-label i {font-size:14px;color:#9484ff;width:18px;text-align:center}
+.profile-info-value {flex:1;font-size:13px;font-weight:600;color:var(--ink)}
+@media(max-width:767px) {
+  .profile-info-label {width:140px;flex-basis:140px;font-size:11px}
+  .profile-info-value {font-size:12px}
+}
+</style>
+{% endblock %}
+
