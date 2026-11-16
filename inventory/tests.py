@@ -107,14 +107,54 @@ class InventoryTests(TestCase):
         res_admin = self.client.get(reverse("inventory:profile"))
         self.assertEqual(res_admin.status_code, 200)
         self.assertContains(res_admin, "Super Admin")
-        self.assertContains(res_admin, "Admin Quick Actions")
+        self.assertContains(res_admin, "User Management")
 
         # Viewer profile
         self.client.force_login(self.viewer)
         res_viewer = self.client.get(reverse("inventory:profile"))
         self.assertEqual(res_viewer.status_code, 200)
         self.assertContains(res_viewer, "Viewer")
-        self.assertNotContains(res_viewer, "Admin Quick Actions")
+        self.assertNotContains(res_viewer, "User Management")
+
+    def test_admin_user_create_and_delete(self):
+        User = get_user_model()
+        self.client.force_login(self.admin)
+
+        # Create new viewer user
+        res = self.client.post(reverse("inventory:admin_user_create"), {
+            "username": "new_staff_user",
+            "first_name": "Test",
+            "last_name": "Person",
+            "email": "test@example.com",
+            "password": "Password123!",
+            "role": "staff",
+        })
+        self.assertEqual(res.status_code, 302)
+        created_user = User.objects.get(username="new_staff_user")
+        self.assertTrue(created_user.is_staff)
+
+        # Delete user
+        del_res = self.client.post(reverse("inventory:admin_user_delete", args=[created_user.pk]))
+        self.assertEqual(del_res.status_code, 302)
+        self.assertFalse(User.objects.filter(username="new_staff_user").exists())
+
+        # Self-delete blocked
+        self_del_res = self.client.post(reverse("inventory:admin_user_delete", args=[self.admin.pk]))
+        self.assertEqual(self_del_res.status_code, 302)
+        self.assertTrue(User.objects.filter(pk=self.admin.pk).exists())
+
+    def test_viewer_cannot_manage_users(self):
+        User = get_user_model()
+        self.client.force_login(self.viewer)
+
+        # Create user should be blocked (redirected)
+        res = self.client.post(reverse("inventory:admin_user_create"), {
+            "username": "hack_user",
+            "password": "Password123!",
+            "role": "staff",
+        })
+        self.assertEqual(res.status_code, 302)
+        self.assertFalse(User.objects.filter(username="hack_user").exists())
 
     def test_change_password_view(self):
         self.client.force_login(self.admin)

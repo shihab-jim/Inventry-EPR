@@ -327,6 +327,10 @@
   function renderMarkdown(text) {
     // Escape HTML
     let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // Headings
+    html = html.replace(/^### (.+)$/gm, '<strong style="display:block;margin:6px 0 2px;color:#4338ca;">$1</strong>');
+    html = html.replace(/^## (.+)$/gm, '<strong style="display:block;margin:8px 0 3px;font-size:13.5px;color:#1e1b4b;">$1</strong>');
+    html = html.replace(/^# (.+)$/gm, '<strong style="display:block;margin:10px 0 4px;font-size:14px;color:#1e1b4b;">$1</strong>');
     // Bold
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     // Inline code

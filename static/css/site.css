@@ -43,6 +43,20 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
 .notification-dot {height:9px;width:9px;position:absolute;top:8px;right:8px;border-radius:50%;background:#ff5469;border:2px solid #fff}
 .top-avatar {width:39px;height:39px;font-size:16px}
 .mobile-menu-button {display:none;border:0;background:#f0eefe;padding:8px 11px;border-radius:10px;color:var(--purple);font-size:19px}
+.side-profile.active i.bi-chevron-down {transform:rotate(180deg)}
+.profile-dropdown {display:none;position:absolute;bottom:100%;left:0;right:0;background:#fff;border:1px solid #eeeef6;border-radius:13px;padding:6px;box-shadow:0 8px 30px #2c296018;margin-bottom:8px;z-index:60}
+.profile-dropdown.show {display:block}
+.profile-dropdown a,.dropdown-logout {display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:11.5px;font-weight:600;color:#4b5271;white-space:nowrap;border:0;background:transparent;width:100%;cursor:pointer;text-align:left}
+.profile-dropdown a:hover,.dropdown-logout:hover {background:#f3f1ff;color:var(--purple)}
+.dropdown-logout {color:#e04458}
+.dropdown-logout:hover {background:#fff0f2;color:#d63a4e}
+.top-avatar-wrap {position:relative;cursor:pointer}
+.top-avatar-dropdown {display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid #eeeef6;border-radius:13px;padding:6px;box-shadow:0 8px 30px #2c296018;margin-top:8px;z-index:60;min-width:170px}
+.top-avatar-dropdown.show {display:block}
+.top-avatar-dropdown a,.top-dropdown-logout {display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:11.5px;font-weight:600;color:#4b5271;white-space:nowrap;border:0;background:transparent;width:100%;cursor:pointer;text-align:left}
+.top-avatar-dropdown a:hover,.top-dropdown-logout:hover {background:#f3f1ff;color:var(--purple)}
+.top-dropdown-logout {color:#e04458}
+.top-dropdown-logout:hover {background:#fff0f2;color:#d63a4e}
 .content-area {max-width:1660px;margin:auto;padding:25px 28px 18px}
 .app-footer {font-size:10px;color:#9da4b5;text-align:center;margin-top:30px;padding:15px 0 4px}
 .page-heading {display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 0 21px}

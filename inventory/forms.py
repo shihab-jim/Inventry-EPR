@@ -57,3 +57,42 @@ class ProfileForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = get_user_model()
         fields = ["first_name", "last_name", "email"]
+
+
+class AdminUserCreateForm(StyledFormMixin, forms.Form):
+    ROLE_CHOICES = (
+        ("viewer", "Viewer (Catalog & Stock In/Out)"),
+        ("staff", "Administrator (Full Staff Access)"),
+    )
+    username = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. john_doe"})
+    )
+    first_name = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. John"})
+    )
+    last_name = forms.CharField(
+        max_length=150,
+        required=False,
+        widget=forms.TextInput(attrs={"placeholder": "e.g. Doe"})
+    )
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={"placeholder": "e.g. john@company.com"})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={"placeholder": "Minimum 6 characters"}),
+        required=True,
+        min_length=6
+    )
+    role = forms.ChoiceField(choices=ROLE_CHOICES, initial="viewer")
+
+    def clean_username(self):
+        username = self.cleaned_data["username"].strip()
+        User = get_user_model()
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("A user with this username already exists.")
+        return username

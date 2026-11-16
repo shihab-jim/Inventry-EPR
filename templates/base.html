@@ -58,13 +58,14 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
 .notification-dot {height:9px;width:9px;position:absolute;top:8px;right:8px;border-radius:50%;background:#ff5469;border:2px solid #fff}
 .top-avatar {width:39px;height:39px;font-size:16px}
 .mobile-menu-button {display:none;border:0;background:#f0eefe;padding:8px 11px;border-radius:10px;color:var(--purple);font-size:19px}
+.side-profile.active i.bi-chevron-down {transform:rotate(180deg)}
 .profile-dropdown {display:none;position:absolute;bottom:100%;left:0;right:0;background:#fff;border:1px solid #eeeef6;border-radius:13px;padding:6px;box-shadow:0 8px 30px #2c296018;margin-bottom:8px;z-index:60}
 .profile-dropdown.show {display:block}
 .profile-dropdown a,.dropdown-logout {display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:11.5px;font-weight:600;color:#4b5271;white-space:nowrap;border:0;background:transparent;width:100%;cursor:pointer;text-align:left}
 .profile-dropdown a:hover,.dropdown-logout:hover {background:#f3f1ff;color:var(--purple)}
 .dropdown-logout {color:#e04458}
 .dropdown-logout:hover {background:#fff0f2;color:#d63a4e}
-.top-avatar-wrap {position:relative}
+.top-avatar-wrap {position:relative;cursor:pointer}
 .top-avatar-dropdown {display:none;position:absolute;top:100%;right:0;background:#fff;border:1px solid #eeeef6;border-radius:13px;padding:6px;box-shadow:0 8px 30px #2c296018;margin-top:8px;z-index:60;min-width:170px}
 .top-avatar-dropdown.show {display:block}
 .top-avatar-dropdown a,.top-dropdown-logout {display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;font-size:11.5px;font-weight:600;color:#4b5271;white-space:nowrap;border:0;background:transparent;width:100%;cursor:pointer;text-align:left}
@@ -199,7 +200,7 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
       <a href="{% url 'inventory:movements' %}" class="menu-item {% if request.resolver_match.url_name == 'movements' %}active{% endif %}"><i class="bi bi-arrow-left-right"></i><span>Stock Movements</span></a>
       <a href="{% url 'inventory:reports' %}" class="menu-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"><i class="bi bi-bar-chart"></i><span>Reports</span></a>
       <a href="{% url 'inventory:settings' %}" class="menu-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i><span>Settings</span></a>
-      <a href="#" class="menu-item" onclick="event.preventDefault();document.getElementById('aiChatToggle').click()"><i class="bi bi-robot"></i><span>AI Assistant</span><span class="tiny-count" style="margin-left:auto">NEW</span></a>
+      <a href="#" class="menu-item" onclick="event.preventDefault();document.body.classList.remove('menu-open');document.getElementById('aiChatToggle').click()"><i class="bi bi-robot"></i><span>AI Assistant</span><span class="tiny-count" style="margin-left:auto">NEW</span></a>
     </nav>
     <div class="sidebar-spacer"></div>
     <div class="reorder-promo">
@@ -208,7 +209,7 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
       <p>Keep stock at optimal levels with smart reorder rules.</p>
       <a href="{% url 'inventory:reorder_rules' %}" class="btn btn-light btn-sm w-100"><i class="bi bi-lightning-charge-fill"></i> Manage Reorder Rules</a>
     </div>
-    <div class="side-profile" style="position:relative;cursor:pointer" onclick="event.stopPropagation();document.getElementById('profileDropdown').classList.toggle('show')">
+    <div class="side-profile" style="position:relative;cursor:pointer" id="sideProfileBtn" onclick="event.stopPropagation();const d=document.getElementById('profileDropdown');d.classList.toggle('show');this.classList.toggle('active',d.classList.contains('show'))">
       <div class="profile-avatar">{{ request.user.username|slice:':1'|upper }}</div>
       <div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username|truncatechars:18 }}</strong><small>{% if request.user.is_staff %}Administrator{% else %}Viewer{% endif %}</small></div>
       <i class="bi bi-chevron-down" style="font-size:13px;color:#66708a;transition:transform .2s"></i>
@@ -247,7 +248,7 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
       </div>
     </header>
     <main class="content-area">
-      {% for message in messages %}<div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>{% endfor %}
+      {% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>{% endfor %}
       {% block content %}{% endblock %}
       <footer class="app-footer">SmartStock ERP • Internship demonstration • Independent educational prototype, not affiliated with PrismERP</footer>
     </main>
@@ -260,7 +261,7 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
 {% include "inventory/components/ai_chat_widget.html" %}
 {% endif %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>document.addEventListener('click',function(e){document.querySelectorAll('.profile-dropdown.show,.top-avatar-dropdown.show').forEach(function(d){if(!d.parentElement.contains(e.target))d.classList.remove('show')})});</script>
+<script>document.addEventListener('click',function(e){document.querySelectorAll('.profile-dropdown.show,.top-avatar-dropdown.show').forEach(function(d){if(!d.parentElement.contains(e.target)){d.classList.remove('show');d.parentElement.classList.remove('active');}})});</script>
 {% block extra_scripts %}{% endblock %}
 </body>
 </html>

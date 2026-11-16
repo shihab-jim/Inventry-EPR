@@ -100,7 +100,9 @@ function getCSRF() {
 function renderSimpleMarkdown(text) {
   let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  html = html.replace(/^## (.+)$/gm, '<h2 style="font-size:16px;font-weight:800;color:#1e1b4b;margin:16px 0 6px;">$1</h2>');
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^#### (.+)$/gm, '<h4 style="font-size:13px;font-weight:700;color:#513ad1;margin:12px 0 4px;">$1</h4>');
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');

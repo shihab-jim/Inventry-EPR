@@ -26,6 +26,8 @@ urlpatterns = [
     path("settings/", views.profile_settings, name="settings"),
     path("profile/", views.user_profile, name="profile"),
     path("profile/change-password/", views.change_password, name="change_password"),
+    path("profile/users/create/", views.admin_user_create, name="admin_user_create"),
+    path("profile/users/<int:pk>/delete/", views.admin_user_delete, name="admin_user_delete"),
     path("ai/chat/", views.ai_chat, name="ai_chat"),
     path("ai/report/", views.ai_report, name="ai_report"),
 ]

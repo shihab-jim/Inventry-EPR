@@ -95,23 +95,135 @@
       </div>
 
       {% if request.user.is_staff %}
-      <div style="border-top:1px solid #f0f1f8;margin-top:18px;padding-top:16px">
-        <div class="panel-title-row compact" style="margin-bottom:10px">
+      <div style="border-top:1px solid #f0f1f8;margin-top:20px;padding-top:20px">
+        <div class="panel-title-row compact" style="margin-bottom:14px">
           <div class="panel-title-group">
-            <div class="section-icon purple" style="background:#ffe9ed;color:#f14e68"><i class="bi bi-shield-lock"></i></div>
-            <div><h2>Admin Quick Actions</h2><p>Shortcuts for administrators</p></div>
+            <div class="section-icon purple" style="background:#f3f0ff;color:#6550ea"><i class="bi bi-people-fill"></i></div>
+            <div><h2>User Management</h2><p>Insert new staff/viewers or delete user accounts</p></div>
           </div>
+          <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal">
+            <i class="bi bi-person-plus-fill"></i> Add New User
+          </button>
         </div>
-        <div class="d-flex gap-2 flex-wrap">
-          <a href="{% url 'admin:index' %}" class="btn btn-soft btn-sm"><i class="bi bi-speedometer2"></i> Django Admin</a>
-          <a href="{% url 'admin:auth_user_changelist' %}" class="btn btn-soft btn-sm"><i class="bi bi-people"></i> Manage Users</a>
-          <a href="{% url 'inventory:reports' %}" class="btn btn-soft btn-sm"><i class="bi bi-bar-chart"></i> Reports</a>
+
+        <div class="table-responsive" style="max-height:360px;overflow-y:auto;border:1px solid #f0f0f8;border-radius:12px">
+          <table class="table table-hover stock-table mb-0" style="min-width:580px">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in all_users %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#8f75fb,#513ad1);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700">
+                      {{ u.username|slice:':1'|upper }}
+                    </div>
+                    <div>
+                      <strong>{{ u.get_full_name|default:u.username }}</strong>
+                      <div class="text-muted" style="font-size:10px">@{{ u.username }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td style="font-size:11px">{{ u.email|default:'—' }}</td>
+                <td>
+                  <span class="status-pill {% if u.is_superuser %}status-good{% elif u.is_staff %}status-good{% else %}status-inactive{% endif %}" style="font-size:9.5px;padding:3px 8px">
+                    <span></span>{% if u.is_superuser %}Super Admin{% elif u.is_staff %}Administrator{% else %}Viewer{% endif %}
+                  </span>
+                </td>
+                <td style="font-size:11px">{{ u.date_joined|date:'M j, Y' }}</td>
+                <td style="text-align:right">
+                  {% if u.pk == request.user.pk %}
+                    <span class="badge bg-light text-muted" style="font-size:10px;padding:5px 8px"><i class="bi bi-person-check"></i> You</span>
+                  {% elif u.is_superuser and not request.user.is_superuser %}
+                    <span class="text-muted" style="font-size:10px">—</span>
+                  {% else %}
+                    <form method="post" action="{% url 'inventory:admin_user_delete' u.pk %}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete user \'{{ u.username }}\'? This action cannot be undone.');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger" style="font-size:10px;padding:3px 8px;border-radius:7px" title="Delete user">
+                        <i class="bi bi-trash"></i> Delete
+                      </button>
+                    </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="empty-panel py-3">No other users found.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap mt-3 pt-2">
+          <a href="{% url 'admin:index' %}" class="btn btn-soft btn-sm"><i class="bi bi-speedometer2"></i> Advanced Django Admin</a>
+          <a href="{% url 'inventory:reports' %}" class="btn btn-soft btn-sm"><i class="bi bi-bar-chart"></i> View System Reports</a>
         </div>
       </div>
       {% endif %}
     </div>
   </div>
 </div>
+
+{% if request.user.is_staff %}
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:18px;border:1px solid #ebebf5;box-shadow:0 15px 40px rgba(33,25,85,0.18)">
+      <div class="modal-header" style="border-bottom:1px solid #f0f0f8;padding:18px 22px">
+        <div class="d-flex align-items-center gap-2">
+          <div class="section-icon purple" style="width:34px;height:34px;font-size:16px"><i class="bi bi-person-plus"></i></div>
+          <h5 class="modal-title fw-bold" id="addUserModalLabel" style="font-size:16px">Insert New User</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'inventory:admin_user_create' %}" novalidate>
+        {% csrf_token %}
+        <div class="modal-body" style="padding:20px 22px">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label" for="{{ create_user_form.username.id_for_label }}">Username <span class="text-danger">*</span></label>
+              {{ create_user_form.username }}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="{{ create_user_form.first_name.id_for_label }}">First Name</label>
+              {{ create_user_form.first_name }}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label" for="{{ create_user_form.last_name.id_for_label }}">Last Name</label>
+              {{ create_user_form.last_name }}
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="{{ create_user_form.email.id_for_label }}">Email Address</label>
+              {{ create_user_form.email }}
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="{{ create_user_form.password.id_for_label }}">Password <span class="text-danger">*</span></label>
+              {{ create_user_form.password }}
+              <small class="text-muted" style="font-size:10px">Initial password must be at least 6 characters.</small>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="{{ create_user_form.role.id_for_label }}">User Role <span class="text-danger">*</span></label>
+              {{ create_user_form.role }}
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top:1px solid #f0f0f8;padding:14px 22px">
+          <button type="button" class="btn btn-soft btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i> Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <style>
 .profile-info-grid {display:flex;flex-direction:column}

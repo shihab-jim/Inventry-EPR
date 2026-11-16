@@ -7,7 +7,7 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import PasswordChangeForm
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
@@ -18,7 +18,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import (
     ProductForm, StockMovementForm, SupplierForm, WarehouseForm,
-    ReorderRuleForm, ProfileForm,
+    ReorderRuleForm, ProfileForm, AdminUserCreateForm,
 )
 from .models import (
     Product, Supplier, Warehouse, PurchaseRequisition, PurchaseOrder,
@@ -383,20 +383,82 @@ def profile_settings(request):
         messages.success(request, "Profile updated.")
         return redirect("inventory:settings")
     return render(request, "inventory/simple_form.html", {
-        "form": form, "title": "Profile settings", "back_url": "inventory:dashboard"
+        "form": form, "title": "Profile settings", "back_url": "inventory:profile"
     })
 
 
 @login_required
 def user_profile(request):
-    """Individual profile page with account info and activity stats."""
+    """Individual profile page with account info, stats, and admin user management."""
     user = request.user
     stats = {
         "movements": StockMovement.objects.filter(created_by=user).count(),
         "requisitions": PurchaseRequisition.objects.filter(created_by=user).count(),
         "purchase_orders": PurchaseOrder.objects.filter(created_by=user).count(),
     }
-    return render(request, "inventory/profile.html", {"stats": stats})
+    context = {"stats": stats}
+    if user.is_staff:
+        User = get_user_model()
+        context["all_users"] = User.objects.all().order_by("-date_joined")
+        context["create_user_form"] = AdminUserCreateForm()
+    return render(request, "inventory/profile.html", context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@require_POST
+def admin_user_create(request):
+    """Admin-only action to insert a new user."""
+    form = AdminUserCreateForm(request.POST)
+    if form.is_valid():
+        User = get_user_model()
+        username = form.cleaned_data["username"]
+        email = form.cleaned_data.get("email", "")
+        first_name = form.cleaned_data.get("first_name", "")
+        last_name = form.cleaned_data.get("last_name", "")
+        password = form.cleaned_data["password"]
+        role = form.cleaned_data["role"]
+
+        new_user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        if role == "staff":
+            new_user.is_staff = True
+            new_user.save(update_fields=["is_staff"])
+
+        role_display = "Administrator" if role == "staff" else "Viewer"
+        messages.success(request, f"User '{username}' created successfully as {role_display}.")
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                messages.error(request, f"{field.title()}: {error}")
+    return redirect("inventory:profile")
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@require_POST
+def admin_user_delete(request, pk):
+    """Admin-only action to delete a user account."""
+    User = get_user_model()
+    target = get_object_or_404(User, pk=pk)
+
+    if target.pk == request.user.pk:
+        messages.error(request, "You cannot delete your own account.")
+        return redirect("inventory:profile")
+
+    if target.is_superuser and not request.user.is_superuser:
+        messages.error(request, "Only Super Admins can remove another Super Admin.")
+        return redirect("inventory:profile")
+
+    username = target.username
+    target.delete()
+    messages.success(request, f"User '{username}' was deleted successfully.")
+    return redirect("inventory:profile")
 
 
 @login_required
