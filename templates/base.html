@@ -33,13 +33,6 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
 .menu-item.active {background:linear-gradient(120deg,#775ff0,#5e43e3);color:white;box-shadow:0 6px 14px #6d50f52c}
 .menu-item i {font-size:16px;width:18px;text-align:center}
 .sidebar-spacer {min-height:24px;flex:1}
-.reorder-promo {background:linear-gradient(150deg,#9884fa,#7255e7 52%,#5533c7);border-radius:17px;padding:19px 16px 15px;color:#fff;box-shadow:0 9px 26px #6945d532;margin-bottom:21px;overflow:hidden;position:relative}
-.promo-icon {height:72px;position:relative;margin-bottom:10px}
-.promo-icon i:first-child {position:absolute;left:18px;font-size:53px;color:#fff4df;filter:drop-shadow(0 6px 7px #36229a66)}
-.promo-icon i:last-child {position:absolute;left:80px;top:22px;font-size:31px;color:#fff;filter:drop-shadow(0 3px 5px #36229a66)}
-.reorder-promo h3 {font-size:14px;letter-spacing:-.035em;margin-bottom:4px}
-.reorder-promo p {font-size:11px;color:#eee8ff;margin-bottom:13px}
-.reorder-promo .btn {font-weight:700;font-size:10px;border-radius:10px;padding:9px 5px;color:#6047db;white-space:normal}
 .side-profile {display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #eeeeF6;border-radius:13px;padding:9px 10px;box-shadow:0 5px 16px #32305d09}
 .profile-avatar,.top-avatar {display:grid;place-items:center;flex:0 0 auto;background:linear-gradient(135deg,#8f75fb,#4531bd);border:2px solid #fff;box-shadow:0 2px 7px #6b61a32c;color:#fff;font-weight:800;border-radius:50%}
 .profile-avatar {width:36px;height:36px;font-size:17px}
@@ -198,17 +191,12 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
       <a href="{% url 'inventory:requisitions' %}" class="menu-item {% if request.resolver_match.url_name == 'requisitions' %}active{% endif %}"><i class="bi bi-file-earmark-check"></i><span>Requisitions</span></a>
       <a href="{% url 'inventory:purchase_orders' %}" class="menu-item {% if request.resolver_match.url_name == 'purchase_orders' %}active{% endif %}"><i class="bi bi-cart-check"></i><span>Purchase Orders</span></a>
       <a href="{% url 'inventory:movements' %}" class="menu-item {% if request.resolver_match.url_name == 'movements' %}active{% endif %}"><i class="bi bi-arrow-left-right"></i><span>Stock Movements</span></a>
+      <a href="{% url 'inventory:reorder_rules' %}" class="menu-item {% if request.resolver_match.url_name == 'reorder_rules' or request.resolver_match.url_name == 'reorder_rule_edit' %}active{% endif %}"><i class="bi bi-sliders"></i><span>Reorder Rules</span></a>
       <a href="{% url 'inventory:reports' %}" class="menu-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"><i class="bi bi-bar-chart"></i><span>Reports</span></a>
       <a href="{% url 'inventory:settings' %}" class="menu-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i><span>Settings</span></a>
       <a href="#" class="menu-item" onclick="event.preventDefault();document.body.classList.remove('menu-open');document.getElementById('aiChatToggle').click()"><i class="bi bi-robot"></i><span>AI Assistant</span><span class="tiny-count" style="margin-left:auto">NEW</span></a>
     </nav>
     <div class="sidebar-spacer"></div>
-    <div class="reorder-promo">
-      <div class="promo-icon"><i class="bi bi-box-seam"></i><i class="bi bi-arrow-repeat"></i></div>
-      <h3>Automated Reordering</h3>
-      <p>Keep stock at optimal levels with smart reorder rules.</p>
-      <a href="{% url 'inventory:reorder_rules' %}" class="btn btn-light btn-sm w-100"><i class="bi bi-lightning-charge-fill"></i> Manage Reorder Rules</a>
-    </div>
     <div class="side-profile" style="position:relative;cursor:pointer" id="sideProfileBtn" onclick="event.stopPropagation();const d=document.getElementById('profileDropdown');d.classList.toggle('show');this.classList.toggle('active',d.classList.contains('show'))">
       <div class="profile-avatar">{{ request.user.username|slice:':1'|upper }}</div>
       <div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username|truncatechars:18 }}</strong><small>{% if request.user.is_staff %}Administrator{% else %}Viewer{% endif %}</small></div>
