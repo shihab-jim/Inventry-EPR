@@ -1,6 +1,157 @@
 {% extends 'base.html' %}
 {% block title %}Purchase Requisitions | SmartStock ERP{% endblock %}
 {% block content %}
-<div class="page-heading"><div><div class="eyebrow">PROCUREMENT WORKFLOW</div><h1>Purchase Requisitions</h1><p>Automatically created from low-stock products; staff approve before purchase orders.</p></div><a class="btn btn-soft" href="{% url 'inventory:reorder_rules' %}"><i class="bi bi-sliders"></i> Reorder Rules</a></div>
-<div class="data-card"><div class="table-responsive"><table class="table stock-table table-hover"><thead><tr><th>PR ID</th><th>Product</th><th>Supplier</th><th>Suggested Qty</th><th>Reason</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead><tbody>{% for pr in requisitions %}<tr><td class="fw-bold">PR-{{ pr.pk }}</td><td><strong>{{ pr.product.name }}</strong><div class="text-muted small">{{ pr.product.sku }}</div></td><td>{{ pr.product.supplier|default:'Unassigned' }}</td><td class="fw-semibold">{{ pr.quantity }}</td><td>{{ pr.reason|truncatechars:70 }}</td><td><span class="table-status {{ pr.status }}">{{ pr.get_status_display }}</span></td><td>{{ pr.created_at|date:'d M Y, H:i' }}</td><td>{% if user.is_staff and pr.status == 'DRAFT' %}<form class="inline-action-form" method="post" action="{% url 'inventory:requisition_action' pr.pk 'approve' %}">{% csrf_token %}<button class="action-btn approve" type="submit">Approve</button></form><form class="inline-action-form" method="post" action="{% url 'inventory:requisition_action' pr.pk 'reject' %}">{% csrf_token %}<button class="action-btn reject" type="submit">Reject</button></form>{% elif user.is_staff and pr.status == 'APPROVED' %}<form class="inline-action-form" method="post" action="{% url 'inventory:purchase_order_create' pr.pk %}">{% csrf_token %}<button class="action-btn" type="submit"><i class="bi bi-cart-plus"></i> Create PO</button></form>{% elif pr.status == 'ORDERED' %}<a class="action-btn" href="{% url 'inventory:purchase_orders' %}"><i class="bi bi-eye"></i> View PO</a>{% else %}{% if user.is_staff and pr.status == 'REJECTED' %}<form class="inline-action-form" method="post" action="{% url 'inventory:requisition_delete' pr.pk %}" onsubmit="return confirm('Delete rejected requisition PR-{{ pr.pk }}?');">{% csrf_token %}<button class="action-btn text-danger" type="submit" title="Delete"><i class="bi bi-trash"></i> Delete</button></form>{% else %}—{% endif %}{% endif %}</td></tr>{% empty %}<tr><td colspan="8" class="empty-panel">No requisitions yet. Stock issues reaching reorder points create draft requests.</td></tr>{% endfor %}</tbody></table></div></div>
+<div class="page-heading">
+  <div>
+    <div class="eyebrow">PROCUREMENT WORKFLOW</div>
+    <h1>Purchase Requisitions</h1>
+    <p>Automatically created when products reach low-stock or are newly registered; staff approve before purchase orders.</p>
+  </div>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    {% if missing_pr_count > 0 and user.is_staff %}
+    <form method="post" action="{% url 'inventory:requisitions_generate_missing' %}" style="display:inline">
+      {% csrf_token %}
+      <button class="btn btn-soft" type="submit" title="Generate draft requisitions for {{ missing_pr_count }} low-stock products">
+        <i class="bi bi-arrow-repeat"></i> Sync Low Stock ({{ missing_pr_count }})
+      </button>
+    </form>
+    {% endif %}
+    <a class="btn btn-soft" href="{% url 'inventory:reorder_rules' %}"><i class="bi bi-sliders"></i> Reorder Rules</a>
+    {% if user.is_staff and available_products %}
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newRequisitionModal">
+      <i class="bi bi-plus-lg"></i> New Requisition
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+<div class="data-card">
+  <div class="table-responsive">
+    <table class="table stock-table table-hover">
+      <thead>
+        <tr>
+          <th>PR ID</th>
+          <th>Product</th>
+          <th>Supplier</th>
+          <th>Suggested Qty</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pr in requisitions %}
+        <tr>
+          <td class="fw-bold">PR-{{ pr.pk }}</td>
+          <td>
+            <strong>{{ pr.product.name }}</strong>
+            <div class="text-muted small">{{ pr.product.sku }}</div>
+          </td>
+          <td>{{ pr.product.supplier|default:'Unassigned' }}</td>
+          <td class="fw-semibold">{{ pr.quantity }}</td>
+          <td>{{ pr.reason|truncatechars:70 }}</td>
+          <td><span class="table-status {{ pr.status }}">{{ pr.get_status_display }}</span></td>
+          <td>{{ pr.created_at|date:'d M Y, H:i' }}</td>
+          <td>
+            {% if user.is_staff and pr.status == 'DRAFT' %}
+            <form class="inline-action-form" method="post" action="{% url 'inventory:requisition_action' pr.pk 'approve' %}">
+              {% csrf_token %}
+              <button class="action-btn approve" type="submit"><i class="bi bi-check-lg"></i> Approve</button>
+            </form>
+            <form class="inline-action-form" method="post" action="{% url 'inventory:requisition_action' pr.pk 'reject' %}">
+              {% csrf_token %}
+              <button class="action-btn reject" type="submit"><i class="bi bi-x-lg"></i> Reject</button>
+            </form>
+            <form class="inline-action-form" method="post" action="{% url 'inventory:requisition_delete' pr.pk %}" onsubmit="return confirm('Delete draft PR-{{ pr.pk }}?');">
+              {% csrf_token %}
+              <button class="action-btn text-danger" type="submit" title="Delete Draft"><i class="bi bi-trash"></i></button>
+            </form>
+            {% elif user.is_staff and pr.status == 'APPROVED' %}
+            <form class="inline-action-form" method="post" action="{% url 'inventory:purchase_order_create' pr.pk %}">
+              {% csrf_token %}
+              <button class="action-btn" type="submit"><i class="bi bi-cart-plus"></i> Create PO</button>
+            </form>
+            {% elif pr.status == 'ORDERED' %}
+            <a class="action-btn" href="{% url 'inventory:purchase_orders' %}"><i class="bi bi-eye"></i> View PO</a>
+            {% elif pr.status == 'FULFILLED' %}
+            <span class="text-success small fw-semibold"><i class="bi bi-check-circle-fill"></i> Completed</span>
+            {% else %}
+              {% if user.is_staff and pr.status == 'REJECTED' %}
+              <form class="inline-action-form" method="post" action="{% url 'inventory:requisition_delete' pr.pk %}" onsubmit="return confirm('Delete rejected requisition PR-{{ pr.pk }}?');">
+                {% csrf_token %}
+                <button class="action-btn text-danger" type="submit" title="Delete"><i class="bi bi-trash"></i> Delete</button>
+              </form>
+              {% else %}
+              —
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="empty-panel">
+            No requisitions found. New products with zero opening stock or items hitting reorder points will appear here.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if user.is_staff and available_products %}
+<!-- New Requisition Modal -->
+<div class="modal fade" id="newRequisitionModal" tabindex="-1" aria-labelledby="newRequisitionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:18px;border:1px solid #ebebf5;box-shadow:0 12px 35px rgba(33,30,85,0.15)">
+      <div class="modal-header" style="border-bottom:1px solid #f0f0f8;padding:18px 24px">
+        <h5 class="modal-title fw-bold" id="newRequisitionModalLabel" style="font-size:16px">
+          <i class="bi bi-file-earmark-plus text-primary me-2"></i>Create Purchase Requisition
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" action="{% url 'inventory:requisition_create' %}">
+        {% csrf_token %}
+        <div class="modal-body" style="padding:20px 24px">
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:12px;color:#555">Select Product *</label>
+            <select name="product_id" id="requisitionProductSelect" class="form-select" required onchange="updateSuggestedQty(this)">
+              <option value="" disabled selected>-- Choose product --</option>
+              {% for p in available_products %}
+              <option value="{{ p.pk }}" data-suggested="{{ p.suggested_reorder_qty|default:10 }}" data-stock="{{ p.current_stock }}" data-target="{{ p.target_stock }}">
+                {{ p.name }} ({{ p.sku }}) — Current Stock: {{ p.current_stock }}
+              </option>
+              {% endfor %}
+            </select>
+            <div class="form-text" style="font-size:11px">Only products without open requisitions are shown.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:12px;color:#555">Requested Quantity *</label>
+            <input type="number" name="quantity" id="requisitionQuantity" class="form-control" min="1" value="10" required>
+            <div class="form-text" style="font-size:11px">Auto-suggests target stock replenishment quantity.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" style="font-size:12px;color:#555">Reason / Justification</label>
+            <input type="text" name="reason" class="form-control" placeholder="e.g. Manual reorder for upcoming project" maxlength="240" value="Manual purchase request">
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top:1px solid #f0f0f8;padding:14px 24px">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Create Requisition</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+function updateSuggestedQty(select) {
+  const opt = select.options[select.selectedIndex];
+  const suggested = opt.getAttribute('data-suggested');
+  if (suggested && parseInt(suggested) > 0) {
+    document.getElementById('requisitionQuantity').value = suggested;
+  }
+}
+</script>
+{% endif %}
 {% endblock %}

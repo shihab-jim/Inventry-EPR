@@ -139,9 +139,17 @@ def product_list(request):
 def product_create(request):
     form = ProductForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        product = form.save()
-        # Do not create a draft before the user records opening stock.
-        messages.success(request, "Product added. Use Stock In to set its opening quantity.")
+        with transaction.atomic():
+            product = form.save()
+            req = create_requisition_if_needed(product, user=request.user)
+        if req:
+            messages.success(
+                request,
+                f"Product '{product.sku} - {product.name}' added. "
+                f"Initial stock is 0; draft PR-{req.pk} automatically generated in Requisitions."
+            )
+        else:
+            messages.success(request, f"Product '{product.sku} - {product.name}' added successfully.")
         return redirect("inventory:products")
     return render(request, "inventory/product_form.html", {"form": form, "title": "Add product"})
 
@@ -221,9 +229,70 @@ def stock_movement_list(request):
 @login_required
 def requisition_list(request):
     qs = PurchaseRequisition.objects.select_related("product", "product__supplier", "created_by")
+    open_product_ids = PurchaseRequisition.objects.filter(status__in=OPEN_STATUSES).values_list("product_id", flat=True)
+    available_products = Product.objects.filter(is_active=True).exclude(id__in=open_product_ids).order_by("name")
+    missing_pr_count = Product.objects.filter(
+        is_active=True,
+        current_stock__lte=F("reorder_level"),
+    ).exclude(id__in=open_product_ids).count()
     return render(request, "inventory/requisition_list.html", {
         "requisitions": qs[:150],
+        "available_products": available_products,
+        "missing_pr_count": missing_pr_count,
     })
+
+
+@login_required
+@staff_required
+@require_POST
+def requisition_create(request):
+    product_id = request.POST.get("product_id")
+    quantity = request.POST.get("quantity")
+    reason = request.POST.get("reason", "").strip() or "Manual purchase request"
+    try:
+        quantity = int(quantity)
+        if quantity <= 0:
+            raise ValueError()
+    except (TypeError, ValueError):
+        messages.error(request, "Please enter a valid positive quantity.")
+        return redirect("inventory:requisitions")
+
+    product = get_object_or_404(Product, pk=product_id, is_active=True)
+    if PurchaseRequisition.objects.filter(product=product, status__in=OPEN_STATUSES).exists():
+        messages.error(request, f"An active requisition already exists for {product.sku} - {product.name}.")
+        return redirect("inventory:requisitions")
+
+    req = PurchaseRequisition.objects.create(
+        product=product,
+        quantity=quantity,
+        reason=reason,
+        created_by=request.user,
+        status=PurchaseRequisition.Status.DRAFT,
+    )
+    messages.success(request, f"Draft PR-{req.pk} created for {product.sku} - {product.name}.")
+    return redirect("inventory:requisitions")
+
+
+@login_required
+@staff_required
+@require_POST
+def requisitions_generate_missing(request):
+    open_product_ids = PurchaseRequisition.objects.filter(status__in=OPEN_STATUSES).values_list("product_id", flat=True)
+    low_stock_products = Product.objects.filter(
+        is_active=True,
+        current_stock__lte=F("reorder_level"),
+    ).exclude(id__in=open_product_ids)
+    created_count = 0
+    with transaction.atomic():
+        for product in low_stock_products:
+            req = create_requisition_if_needed(product, user=request.user)
+            if req:
+                created_count += 1
+    if created_count > 0:
+        messages.success(request, f"Generated {created_count} draft requisition(s) for low-stock inventory.")
+    else:
+        messages.info(request, "All low-stock items already have active requisitions.")
+    return redirect("inventory:requisitions")
 
 
 @login_required

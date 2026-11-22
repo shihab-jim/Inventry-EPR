@@ -253,3 +253,49 @@ class InventoryTests(TestCase):
         res = self.client.post(reverse("inventory:requisition_delete", args=[req.pk]))
         self.assertEqual(res.status_code, 302)
         self.assertFalse(PurchaseRequisition.objects.filter(pk=req.pk).exists())
+
+    def test_product_create_auto_generates_requisition(self):
+        self.client.force_login(self.admin)
+        res = self.client.post(reverse("inventory:product_create"), {
+            "sku": "AUTO-PR-01",
+            "name": "Auto Requisition Item",
+            "supplier": self.supplier.pk,
+            "unit_price": "25.00",
+            "reorder_level": 15,
+            "target_stock": 60,
+            "is_active": "on",
+        })
+        self.assertEqual(res.status_code, 302)
+        prod = Product.objects.get(sku="AUTO-PR-01")
+        self.assertEqual(prod.current_stock, 0)
+        req = PurchaseRequisition.objects.filter(product=prod, status="DRAFT").first()
+        self.assertIsNotNone(req)
+        self.assertEqual(req.quantity, 60)
+
+    def test_requisition_create_manual(self):
+        self.client.force_login(self.admin)
+        prod2 = Product.objects.create(
+            sku="MAN-PR-02", name="Manual PR Item", supplier=self.supplier,
+            current_stock=20, reorder_level=5, target_stock=50,
+        )
+        res = self.client.post(reverse("inventory:requisition_create"), {
+            "product_id": prod2.pk,
+            "quantity": 30,
+            "reason": "Special project order",
+        })
+        self.assertEqual(res.status_code, 302)
+        req = PurchaseRequisition.objects.filter(product=prod2).first()
+        self.assertIsNotNone(req)
+        self.assertEqual(req.quantity, 30)
+        self.assertEqual(req.reason, "Special project order")
+
+    def test_requisitions_generate_missing(self):
+        self.client.force_login(self.admin)
+        prod3 = Product.objects.create(
+            sku="SYNC-PR-03", name="Sync Low Stock Item", supplier=self.supplier,
+            current_stock=0, reorder_level=10, target_stock=40,
+        )
+        self.assertFalse(PurchaseRequisition.objects.filter(product=prod3).exists())
+        res = self.client.post(reverse("inventory:requisitions_generate_missing"))
+        self.assertEqual(res.status_code, 302)
+        self.assertTrue(PurchaseRequisition.objects.filter(product=prod3, status="DRAFT").exists())
