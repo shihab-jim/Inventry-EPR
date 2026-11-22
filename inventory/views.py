@@ -95,6 +95,9 @@ def dashboard(request):
             "received": [movement_counts[d]["IN"] for d in dates],
             "issued": [movement_counts[d]["OUT"] for d in dates],
         },
+        "inbound_7d": sum(movement_counts[d]["IN"] for d in dates),
+        "outbound_7d": sum(movement_counts[d]["OUT"] for d in dates),
+        "net_7d": sum(movement_counts[d]["IN"] for d in dates) - sum(movement_counts[d]["OUT"] for d in dates),
     }
     return render(request, "inventory/dashboard.html", context)
 
