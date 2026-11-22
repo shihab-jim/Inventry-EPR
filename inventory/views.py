@@ -63,7 +63,7 @@ def dashboard(request):
 
     watchlist = list(
         low_stock.select_related("supplier", "warehouse", "category")
-        .order_by("current_stock", "name")[:5]
+        .order_by("current_stock", "name")[:25]
     )
     existing = {
         req.product_id: req

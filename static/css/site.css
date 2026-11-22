@@ -88,7 +88,7 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
 .legend-item {display:flex;gap:7px;align-items:center}.legend-dot {display:inline-block;flex:0 0 auto;height:9px;width:9px;border-radius:50%}
 .dot-purple {background:#6750f3}.dot-lavender {background:#cfc8ff}.green {background:#42bb85}.amber {background:#ffbb52}.red {background:#fa6b74}
 .stack-panels {display:flex;flex-direction:column;gap:16px;height:100%}
-.stack-panels .panel {flex:1}
+.stack-panels .panel {flex:1;min-height:0;display:flex;flex-direction:column}
 .circle-help {color:#878da6;font-size:15px}
 .alert-chart-section {display:flex;align-items:center;gap:14px;justify-content:space-between}
 .donut-wrap {height:152px;min-width:150px;width:150px}
@@ -97,7 +97,11 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
 .donut-legend div:last-child {border-bottom:0}
 .donut-legend strong {margin-left:auto;color:var(--ink);font-size:12px}
 .tiny-count {white-space:nowrap;border-radius:9px;background:#f0edff;color:#674dde;font-size:10px;font-weight:800;padding:6px 9px}
-.recommend-list {display:flex;flex-direction:column}
+.recommend-list {display:flex;flex-direction:column;max-height:220px;overflow-y:auto;overflow-x:hidden;padding-right:4px;scrollbar-width:thin;scrollbar-color:#cfc8ff #f4f4fa}
+.recommend-list::-webkit-scrollbar {width:5px}
+.recommend-list::-webkit-scrollbar-track {background:#f4f4fa;border-radius:4px}
+.recommend-list::-webkit-scrollbar-thumb {background:#cfc8ff;border-radius:4px}
+.recommend-list::-webkit-scrollbar-thumb:hover {background:#9d8df7}
 .recommend-item {display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid #f0f1f7}
 .product-icon {height:35px;width:35px;border-radius:10px;background:#f2f1fd;display:grid;place-items:center;color:#8475e7;font-size:18px;flex:0 0 35px}
 .recommend-name {min-width:0;flex:1}
