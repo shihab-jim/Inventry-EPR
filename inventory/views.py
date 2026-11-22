@@ -157,7 +157,31 @@ def product_edit(request, pk):
             create_requisition_if_needed(product, user=request.user)
         messages.success(request, "Product updated successfully.")
         return redirect("inventory:products")
-    return render(request, "inventory/product_form.html", {"form": form, "title": "Edit product"})
+    return render(request, "inventory/product_form.html", {
+        "form": form, "title": "Edit product", "product": product
+    })
+
+
+@login_required
+@staff_required
+@require_POST
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    name = product.name
+    sku = product.sku
+    has_history = product.movements.exists() or product.requisitions.exists()
+    if has_history:
+        product.is_active = False
+        product.save(update_fields=["is_active", "updated_at"])
+        messages.info(
+            request,
+            f"Product '{sku} - {name}' has transaction records and cannot be permanently deleted. "
+            f"It has been archived/deactivated instead."
+        )
+    else:
+        product.delete()
+        messages.success(request, f"Product '{sku} - {name}' was deleted.")
+    return redirect("inventory:products")
 
 
 @login_required
@@ -215,6 +239,19 @@ def requisition_action(request, pk, action):
         messages.error(request, "; ".join(exc.messages))
     except Exception as exc:
         messages.error(request, f"Could not update requisition: {exc}")
+    return redirect("inventory:requisitions")
+
+
+@login_required
+@staff_required
+@require_POST
+def requisition_delete(request, pk):
+    requisition = get_object_or_404(PurchaseRequisition, pk=pk)
+    if requisition.status not in {PurchaseRequisition.Status.DRAFT, PurchaseRequisition.Status.REJECTED}:
+        messages.error(request, "Only draft or rejected requisitions can be deleted.")
+        return redirect("inventory:requisitions")
+    requisition.delete()
+    messages.success(request, f"Requisition PR-{pk} was deleted.")
     return redirect("inventory:requisitions")
 
 
@@ -292,6 +329,31 @@ def warehouse_create(request):
 
 
 @login_required
+@staff_required
+def warehouse_edit(request, pk):
+    warehouse = get_object_or_404(Warehouse, pk=pk)
+    form = WarehouseForm(request.POST or None, instance=warehouse)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"Warehouse '{warehouse.name}' updated.")
+        return redirect("inventory:warehouses")
+    return render(request, "inventory/simple_form.html", {
+        "form": form, "title": f"Edit Warehouse: {warehouse.code}", "back_url": "inventory:warehouses"
+    })
+
+
+@login_required
+@staff_required
+@require_POST
+def warehouse_delete(request, pk):
+    warehouse = get_object_or_404(Warehouse, pk=pk)
+    name = warehouse.name
+    warehouse.delete()
+    messages.success(request, f"Warehouse '{name}' was deleted.")
+    return redirect("inventory:warehouses")
+
+
+@login_required
 def supplier_list(request):
     suppliers = Supplier.objects.annotate(product_count=Count("products"))
     return render(request, "inventory/suppliers.html", {"suppliers": suppliers})
@@ -306,6 +368,38 @@ def supplier_create(request):
         messages.success(request, "Supplier added.")
         return redirect("inventory:suppliers")
     return render(request, "inventory/simple_form.html", {"form": form, "title": "Add supplier", "back_url": "inventory:suppliers"})
+
+
+@login_required
+@staff_required
+def supplier_edit(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    form = SupplierForm(request.POST or None, instance=supplier)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"Supplier '{supplier.name}' updated.")
+        return redirect("inventory:suppliers")
+    return render(request, "inventory/simple_form.html", {
+        "form": form, "title": f"Edit Supplier: {supplier.name}", "back_url": "inventory:suppliers"
+    })
+
+
+@login_required
+@staff_required
+@require_POST
+def supplier_delete(request, pk):
+    from django.db.models import ProtectedError
+    supplier = get_object_or_404(Supplier, pk=pk)
+    name = supplier.name
+    try:
+        supplier.delete()
+        messages.success(request, f"Supplier '{name}' was deleted.")
+    except ProtectedError:
+        messages.error(
+            request,
+            f"Cannot delete supplier '{name}' because they have associated purchase orders."
+        )
+    return redirect("inventory:suppliers")
 
 
 @login_required

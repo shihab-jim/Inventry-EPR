@@ -187,3 +187,69 @@ class InventoryTests(TestCase):
             "email": "shihab@example.com",
         })
         self.assertRedirects(res, reverse("inventory:profile"))
+
+    def test_warehouse_crud(self):
+        self.client.force_login(self.admin)
+        from .models import Warehouse
+        # Create
+        res = self.client.post(reverse("inventory:warehouse_create"), {
+            "code": "WH-TEST", "name": "Test Warehouse", "location": "Test City",
+        })
+        self.assertEqual(res.status_code, 302)
+        wh = Warehouse.objects.get(code="WH-TEST")
+        # Edit
+        res_edit = self.client.post(reverse("inventory:warehouse_edit", args=[wh.pk]), {
+            "code": "WH-TEST", "name": "Updated Warehouse", "location": "New City",
+        })
+        self.assertEqual(res_edit.status_code, 302)
+        wh.refresh_from_db()
+        self.assertEqual(wh.name, "Updated Warehouse")
+        # Delete
+        res_del = self.client.post(reverse("inventory:warehouse_delete", args=[wh.pk]))
+        self.assertEqual(res_del.status_code, 302)
+        self.assertFalse(Warehouse.objects.filter(pk=wh.pk).exists())
+
+    def test_supplier_crud(self):
+        self.client.force_login(self.admin)
+        from .models import Supplier
+        # Create
+        res = self.client.post(reverse("inventory:supplier_create"), {
+            "name": "Supplier Temp", "email": "temp@example.com", "phone": "123", "address": "Road 1",
+        })
+        self.assertEqual(res.status_code, 302)
+        sup = Supplier.objects.get(name="Supplier Temp")
+        # Edit
+        res_edit = self.client.post(reverse("inventory:supplier_edit", args=[sup.pk]), {
+            "name": "Supplier Updated", "email": "updated@example.com", "phone": "456", "address": "Road 2",
+        })
+        self.assertEqual(res_edit.status_code, 302)
+        sup.refresh_from_db()
+        self.assertEqual(sup.name, "Supplier Updated")
+        # Delete
+        res_del = self.client.post(reverse("inventory:supplier_delete", args=[sup.pk]))
+        self.assertEqual(res_del.status_code, 302)
+        self.assertFalse(Supplier.objects.filter(pk=sup.pk).exists())
+
+    def test_product_delete_or_archive(self):
+        self.client.force_login(self.admin)
+        # Clean product without history -> deleted permanently
+        clean_prod = Product.objects.create(
+            sku="CLEAN-01", name="Clean Item", supplier=self.supplier, unit_price="10.00"
+        )
+        res = self.client.post(reverse("inventory:product_delete", args=[clean_prod.pk]))
+        self.assertEqual(res.status_code, 302)
+        self.assertFalse(Product.objects.filter(sku="CLEAN-01").exists())
+
+        # Product with movements -> archived
+        record_stock_movement(product_id=self.product.pk, movement_type="IN", quantity=10, user=self.admin)
+        res_archive = self.client.post(reverse("inventory:product_delete", args=[self.product.pk]))
+        self.assertEqual(res_archive.status_code, 302)
+        self.product.refresh_from_db()
+        self.assertFalse(self.product.is_active)
+
+    def test_requisition_delete(self):
+        self.client.force_login(self.admin)
+        req = PurchaseRequisition.objects.create(product=self.product, quantity=5, status="DRAFT")
+        res = self.client.post(reverse("inventory:requisition_delete", args=[req.pk]))
+        self.assertEqual(res.status_code, 302)
+        self.assertFalse(PurchaseRequisition.objects.filter(pk=req.pk).exists())
