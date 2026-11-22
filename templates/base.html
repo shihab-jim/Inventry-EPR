@@ -242,7 +242,6 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
     <main class="content-area">
       {% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show" role="alert">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>{% endfor %}
       {% block content %}{% endblock %}
-      <footer class="app-footer">SmartStock ERP • Internship demonstration • Independent educational prototype, not affiliated with PrismERP</footer>
     </main>
   </div>
 </div>
