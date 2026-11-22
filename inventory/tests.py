@@ -86,7 +86,7 @@ class InventoryTests(TestCase):
 
     def test_dashboard_counts_and_navigation(self):
         self.client.force_login(self.admin)
-        for page in ["dashboard", "products", "warehouses", "suppliers", "movements",
+        for page in ["dashboard", "products", "categories", "warehouses", "suppliers", "movements",
                      "requisitions", "purchase_orders", "reports", "reorder_rules", "settings"]:
             response = self.client.get(reverse(f"inventory:{page}"))
             self.assertEqual(response.status_code, 200, page)
@@ -299,3 +299,20 @@ class InventoryTests(TestCase):
         res = self.client.post(reverse("inventory:requisitions_generate_missing"))
         self.assertEqual(res.status_code, 302)
         self.assertTrue(PurchaseRequisition.objects.filter(product=prod3, status="DRAFT").exists())
+
+    def test_category_crud(self):
+        self.client.force_login(self.admin)
+        from .models import Category
+        # Create
+        res = self.client.post(reverse("inventory:category_create"), {"name": "Hardware"})
+        self.assertEqual(res.status_code, 302)
+        cat = Category.objects.get(name="Hardware")
+        # Edit
+        res_edit = self.client.post(reverse("inventory:category_edit", args=[cat.pk]), {"name": "Hardware & Tools"})
+        self.assertEqual(res_edit.status_code, 302)
+        cat.refresh_from_db()
+        self.assertEqual(cat.name, "Hardware & Tools")
+        # Delete
+        res_del = self.client.post(reverse("inventory:category_delete", args=[cat.pk]))
+        self.assertEqual(res_del.status_code, 302)
+        self.assertFalse(Category.objects.filter(pk=cat.pk).exists())

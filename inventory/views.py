@@ -18,10 +18,10 @@ from django.views.decorators.http import require_POST
 
 from .forms import (
     ProductForm, StockMovementForm, SupplierForm, WarehouseForm,
-    ReorderRuleForm, ProfileForm, AdminUserCreateForm,
+    ReorderRuleForm, ProfileForm, AdminUserCreateForm, CategoryForm,
 )
 from .models import (
-    Product, Supplier, Warehouse, PurchaseRequisition, PurchaseOrder,
+    Category, Product, Supplier, Warehouse, PurchaseRequisition, PurchaseOrder,
     StockMovement,
 )
 from .services import (
@@ -472,6 +472,54 @@ def supplier_delete(request, pk):
             f"Cannot delete supplier '{name}' because they have associated purchase orders."
         )
     return redirect("inventory:suppliers")
+
+
+@login_required
+def category_list(request):
+    categories = Category.objects.annotate(product_count=Count("products"))
+    return render(request, "inventory/categories.html", {"categories": categories})
+
+
+@login_required
+@staff_required
+def category_create(request):
+    form = CategoryForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        cat = form.save()
+        messages.success(request, f"Category '{cat.name}' added successfully.")
+        return redirect("inventory:categories")
+    return render(request, "inventory/simple_form.html", {
+        "form": form,
+        "title": "Add Category",
+        "back_url": "inventory:categories",
+    })
+
+
+@login_required
+@staff_required
+def category_edit(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    form = CategoryForm(request.POST or None, instance=category)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"Category '{category.name}' updated.")
+        return redirect("inventory:categories")
+    return render(request, "inventory/simple_form.html", {
+        "form": form,
+        "title": f"Edit Category: {category.name}",
+        "back_url": "inventory:categories",
+    })
+
+
+@login_required
+@staff_required
+@require_POST
+def category_delete(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    name = category.name
+    category.delete()
+    messages.success(request, f"Category '{name}' was deleted.")
+    return redirect("inventory:categories")
 
 
 @login_required

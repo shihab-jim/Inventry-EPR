@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Product, StockMovement, Supplier, Warehouse
+from .models import Category, Product, StockMovement, Supplier, Warehouse
 
 
 class StyledFormMixin:
@@ -45,6 +45,12 @@ class WarehouseForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Warehouse
         fields = ["code", "name", "location"]
+
+
+class CategoryForm(StyledFormMixin, forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ["name"]
 
 
 class ReorderRuleForm(StyledFormMixin, forms.ModelForm):
