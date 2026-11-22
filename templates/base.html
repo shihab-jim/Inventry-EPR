@@ -193,7 +193,7 @@ h1,h2,h3,h4 {font-weight:800;letter-spacing:-.035em}
       <a href="{% url 'inventory:movements' %}" class="menu-item {% if request.resolver_match.url_name == 'movements' %}active{% endif %}"><i class="bi bi-arrow-left-right"></i><span>Stock Movements</span></a>
       <a href="{% url 'inventory:reorder_rules' %}" class="menu-item {% if request.resolver_match.url_name == 'reorder_rules' or request.resolver_match.url_name == 'reorder_rule_edit' %}active{% endif %}"><i class="bi bi-sliders"></i><span>Reorder Rules</span></a>
       <a href="{% url 'inventory:reports' %}" class="menu-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"><i class="bi bi-bar-chart"></i><span>Reports</span></a>
-      <a href="{% url 'inventory:settings' %}" class="menu-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i><span>Settings</span></a>
+      <a href="{% url 'inventory:settings' %}" class="menu-item {% if request.resolver_match.url_name == 'settings' or request.resolver_match.url_name == 'profile' or request.resolver_match.url_name == 'change_password' %}active{% endif %}"><i class="bi bi-gear"></i><span>Settings</span></a>
       <a href="#" class="menu-item" onclick="event.preventDefault();document.body.classList.remove('menu-open');document.getElementById('aiChatToggle').click()"><i class="bi bi-robot"></i><span>AI Assistant</span><span class="tiny-count" style="margin-left:auto">NEW</span></a>
     </nav>
     <div class="sidebar-spacer"></div>

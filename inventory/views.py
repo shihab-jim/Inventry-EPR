@@ -10,7 +10,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash, get_user_model
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import DecimalField, ExpressionWrapper, F, Q, Sum
+from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -175,6 +175,8 @@ def stock_movement_create(request, pk):
             )
         except ValidationError as exc:
             form.add_error(None, "; ".join(exc.messages))
+        except Exception as exc:
+            form.add_error(None, f"Could not record movement: {exc}")
         else:
             messages.success(request, "Stock recorded. Automatic reorder rule checked.")
             return redirect("inventory:products")
@@ -211,6 +213,8 @@ def requisition_action(request, pk, action):
         messages.success(request, "Requisition approved." if action == "approve" else "Requisition rejected.")
     except ValidationError as exc:
         messages.error(request, "; ".join(exc.messages))
+    except Exception as exc:
+        messages.error(request, f"Could not update requisition: {exc}")
     return redirect("inventory:requisitions")
 
 
@@ -272,7 +276,7 @@ def purchase_order_receive(request, pk):
 
 @login_required
 def warehouse_list(request):
-    warehouses = Warehouse.objects.all()
+    warehouses = Warehouse.objects.annotate(product_count=Count("products"))
     return render(request, "inventory/warehouses.html", {"warehouses": warehouses})
 
 
@@ -289,7 +293,7 @@ def warehouse_create(request):
 
 @login_required
 def supplier_list(request):
-    suppliers = Supplier.objects.all()
+    suppliers = Supplier.objects.annotate(product_count=Count("products"))
     return render(request, "inventory/suppliers.html", {"suppliers": suppliers})
 
 
@@ -368,7 +372,11 @@ def export_csv(request, kind):
                              p.unit_price])
     else:
         writer.writerow(["Timestamp", "SKU", "Product", "Movement", "Quantity", "Note", "User"])
-        for m in StockMovement.objects.select_related("product", "created_by").all()[:5000]:
+        qs = StockMovement.objects.select_related("product", "created_by").all()
+        selected_type = request.GET.get("type", "")
+        if selected_type in StockMovement.MovementType.values:
+            qs = qs.filter(movement_type=selected_type)
+        for m in qs[:5000]:
             writer.writerow([m.created_at.isoformat(), csv_safe(m.product.sku),
                              csv_safe(m.product.name), m.get_movement_type_display(),
                              m.quantity, csv_safe(m.note), csv_safe(m.created_by or "")])
@@ -381,7 +389,7 @@ def profile_settings(request):
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Profile updated.")
-        return redirect("inventory:settings")
+        return redirect("inventory:profile")
     return render(request, "inventory/simple_form.html", {
         "form": form, "title": "Profile settings", "back_url": "inventory:profile"
     })
@@ -412,26 +420,29 @@ def admin_user_create(request):
     form = AdminUserCreateForm(request.POST)
     if form.is_valid():
         User = get_user_model()
-        username = form.cleaned_data["username"]
-        email = form.cleaned_data.get("email", "")
-        first_name = form.cleaned_data.get("first_name", "")
-        last_name = form.cleaned_data.get("last_name", "")
+        username = form.cleaned_data["username"].strip()
+        email = form.cleaned_data.get("email", "").strip()
+        first_name = form.cleaned_data.get("first_name", "").strip()
+        last_name = form.cleaned_data.get("last_name", "").strip()
         password = form.cleaned_data["password"]
         role = form.cleaned_data["role"]
 
-        new_user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-        )
-        if role == "staff":
-            new_user.is_staff = True
-            new_user.save(update_fields=["is_staff"])
+        try:
+            new_user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+            )
+            if role == "staff":
+                new_user.is_staff = True
+                new_user.save(update_fields=["is_staff"])
 
-        role_display = "Administrator" if role == "staff" else "Viewer"
-        messages.success(request, f"User '{username}' created successfully as {role_display}.")
+            role_display = "Administrator" if role == "staff" else "Viewer"
+            messages.success(request, f"User '{username}' created successfully as {role_display}.")
+        except Exception as exc:
+            messages.error(request, f"Could not create user: {exc}")
     else:
         for field, errors in form.errors.items():
             for error in errors:

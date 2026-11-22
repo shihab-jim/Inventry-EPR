@@ -171,3 +171,19 @@ class InventoryTests(TestCase):
         self.client.force_login(self.admin)
         response = self.client.post(reverse("logout"))
         self.assertEqual(response.status_code, 302)
+
+    def test_movement_csv_filter(self):
+        self.client.force_login(self.admin)
+        record_stock_movement(product_id=self.product.pk, movement_type="OUT", quantity=5, user=self.admin)
+        res = self.client.get(reverse("inventory:export_csv", args=["movements"]) + "?type=OUT")
+        self.assertEqual(res.status_code, 200)
+        self.assertIn(b"TST-01", res.content)
+
+    def test_profile_settings_redirects_to_profile(self):
+        self.client.force_login(self.admin)
+        res = self.client.post(reverse("inventory:settings"), {
+            "first_name": "Shihab",
+            "last_name": "Admin",
+            "email": "shihab@example.com",
+        })
+        self.assertRedirects(res, reverse("inventory:profile"))
